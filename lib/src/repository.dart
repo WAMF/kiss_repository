@@ -18,7 +18,7 @@ class IdentifedObject<T> {
   final T object;
 }
 
-enum RepositoryErrorCode { notFound, unknown }
+enum RepositoryErrorCode { notFound, alreadyExists, unknown }
 
 class RepositoryException implements Exception {
   RepositoryException({
@@ -30,6 +30,13 @@ class RepositoryException implements Exception {
     return RepositoryException(
       message: 'Item with id $id not found',
       code: RepositoryErrorCode.notFound,
+    );
+  }
+
+  factory RepositoryException.alreadyExists(String id) {
+    return RepositoryException(
+      message: 'Item with id $id already exists',
+      code: RepositoryErrorCode.alreadyExists,
     );
   }
   final String message;
@@ -50,6 +57,7 @@ abstract class Repository<T> {
 
   //single operations
   Future<T> add(T item);
+  Future<T> addWithId(String id, T item);
   Future<T> update(String id, T Function(T current) updater);
   Future<void> delete(String id);
 
