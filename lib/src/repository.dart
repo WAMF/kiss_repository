@@ -48,7 +48,6 @@ class RepositoryException implements Exception {
 
 abstract class Repository<T> {
   String? get path;
-
   //read operations
   Future<T> get(String id);
   Stream<T> stream(String id);
