@@ -14,3 +14,7 @@
 
 - Added in memory reference implementation, added a dispose method to the interface 
 - Update interface to make ID generation explicitly an external task thats out of scope of this interface.
+
+## 0.8.1
+
+- Update documentation
