@@ -1,5 +1,4 @@
 import 'package:kiss_repository/kiss_repository.dart';
-import 'package:kiss_repository/src/in_memory_repository.dart'; // Import the implementation
 import 'package:test/test.dart';
 
 class InMemoryQueryBuilder
@@ -28,17 +27,21 @@ class QueryByName implements Query {
 class TestObject {
   final String id;
   final String name;
-  TestObject({required this.id, required this.name});
+  TestObject({
+    required this.id,
+    required this.name,
+  });
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is TestObject &&
           runtimeType == other.runtimeType &&
+          id == other.id &&
           name == other.name;
 
   @override
-  int get hashCode => name.hashCode;
+  int get hashCode => Object.hash(id, name);
 
   @override
   String toString() => 'TestObject{name: $name}';
@@ -76,7 +79,7 @@ void main() {
       expect(retrievedItem, item);
     });
 
-    test('addWithId and get single item', () async {
+    test('add with specific ID and get single item', () async {
       final id = generateId();
       final item = TestObject(id: id, name: 'Test A');
       await repository.add(IdentifedObject(id, item));
