@@ -17,11 +17,6 @@ class InMemoryFilterQuery<T> extends Query {
 /// This repository stores items in a simple [Map]. It supports basic CRUD
 /// operations and streams for real-time updates.
 ///
-/// Note: ID generation for [add] and [addAll] is handled by a simple incrementing
-/// counter prefixed with 'mem_', which is not guaranteed to be unique in all
-/// scenarios (e.g., across restarts or multiple instances if not managed).
-/// For more robust ID generation, consider using UUIDs or a different strategy.
-///
 
 class InMemoryRepository<T> implements Repository<T> {
   final QueryBuilder<InMemoryFilterQuery<T>> _queryBuilder;
