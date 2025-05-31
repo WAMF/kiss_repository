@@ -54,14 +54,15 @@ abstract class Repository<T> {
   Future<List<T>> query({Query query = const AllQuery()});
   Stream<List<T>> streamQuery({Query query = const AllQuery()});
 
-  //single operations
-  Future<T> add(T item);
-  Future<T> addWithId(String id, T item);
+  Future<T> add(IdentifedObject<T> item);
   Future<T> update(String id, T Function(T current) updater);
   Future<void> delete(String id);
 
   //batch operations
-  Future<Iterable<T>> addAll(Iterable<T> items);
+  Future<Iterable<T>> addAll(Iterable<IdentifedObject<T>> items);
   Future<Iterable<T>> updateAll(Iterable<IdentifedObject<T>> items);
   Future<void> deleteAll(Iterable<String> ids);
+
+  //dispose
+  void dispose();
 }

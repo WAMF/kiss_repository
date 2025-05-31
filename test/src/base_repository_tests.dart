@@ -2,23 +2,33 @@ import 'package:kiss_repository/kiss_repository.dart';
 import 'package:kiss_repository/src/in_memory_repository.dart'; // Import the implementation
 import 'package:test/test.dart';
 
-// Simple mock QueryBuilder for testing purposes
-class MockQueryBuilder<T> implements QueryBuilder<InMemoryFilterQuery<T>> {
+class InMemoryQueryBuilder
+    implements QueryBuilder<InMemoryFilterQuery<TestObject>> {
   @override
-  InMemoryFilterQuery<T> build(Query query) {
-    if (query is InMemoryFilterQuery<T>) {
-      return query; // Pass through if it's already the correct type
+  InMemoryFilterQuery<TestObject> build(Query query) {
+    if (query is QueryByName) {
+      return InMemoryQueryByNameFilter(query);
     }
-    // For testing, assume any other query translates to a filter that accepts all
-    // You might want more sophisticated mock logic depending on your query types
-    return InMemoryFilterQuery<T>((item) => true);
+    return InMemoryFilterQuery<TestObject>((item) => true);
   }
+}
+
+class InMemoryQueryByNameFilter extends InMemoryFilterQuery<TestObject> {
+  final QueryByName query;
+  InMemoryQueryByNameFilter(this.query)
+      : super((item) => item.name == query.name);
+}
+
+class QueryByName implements Query {
+  final String name;
+  QueryByName(this.name);
 }
 
 // Simple class for testing
 class TestObject {
+  final String id;
   final String name;
-  TestObject(this.name);
+  TestObject({required this.id, required this.name});
 
   @override
   bool operator ==(Object other) =>
@@ -34,40 +44,42 @@ class TestObject {
   String toString() => 'TestObject{name: $name}';
 }
 
+int _nextId = 0;
+String generateId() {
+  return 'mem_${_nextId++}';
+}
+
 void main() {
   group('InMemoryRepository Tests', () {
-    late InMemoryRepository<TestObject> repository;
-    late MockQueryBuilder<TestObject> mockQueryBuilder;
+    late Repository<TestObject> repository;
+    late InMemoryQueryBuilder queryBuilder;
 
     setUp(() {
-      mockQueryBuilder = MockQueryBuilder<TestObject>();
-      // Using a base path for testing, mirroring the constructor requirement
+      queryBuilder = InMemoryQueryBuilder();
       repository = InMemoryRepository<TestObject>(
-        queryBuilder: mockQueryBuilder,
+        queryBuilder: queryBuilder,
         path: 'test_objects',
       );
     });
 
     tearDown(() {
-      repository.dispose(); // Ensure streams are closed after each test
+      repository.dispose();
     });
 
     test('add and get single item', () async {
-      final item = TestObject('Test 1');
-      final addedItem = await repository.add(item);
-      // Assuming add returns the item itself, and _generateId creates 'mem_0'
-      final retrievedItem = await repository.get('mem_0');
+      final id = generateId();
+      final item = TestObject(id: id, name: 'Test 1');
+      final addedItem = await repository.add(IdentifedObject(id, item));
+      final retrievedItem = await repository.get(id);
 
-      expect(addedItem, item); // Check if the returned item is the same
+      expect(addedItem, item);
       expect(retrievedItem, item);
-      // Check internal state (optional, based on visibility/need)
-      // expect(repository._items['test_objects/mem_0'], item);
     });
 
     test('addWithId and get single item', () async {
-      final item = TestObject('Test A');
-      final id = 'custom_id_1';
-      await repository.addWithId(id, item);
+      final id = generateId();
+      final item = TestObject(id: id, name: 'Test A');
+      await repository.add(IdentifedObject(id, item));
       final retrievedItem = await repository.get(id);
 
       expect(retrievedItem, item);
@@ -82,26 +94,26 @@ void main() {
     });
 
     test('add throws alreadyExists for existing id', () async {
-      final item1 = TestObject('Test B');
-      final id = 'duplicate_id';
-      await repository.addWithId(id, item1);
+      final id = generateId();
+      final item1 = TestObject(id: id, name: 'Test B');
+      await repository.add(IdentifedObject(id, item1));
 
-      final item2 = TestObject('Test C');
+      final item2 = TestObject(id: id, name: 'Test C');
       expect(
-        () => repository.addWithId(id, item2),
+        () => repository.add(IdentifedObject(id, item2)),
         throwsA(isA<RepositoryException>()
             .having((e) => e.code, 'code', RepositoryErrorCode.alreadyExists)),
       );
     });
 
     test('update existing item', () async {
-      final initialItem = TestObject('Initial');
-      final id = 'update_id';
-      await repository.addWithId(id, initialItem);
+      final id = generateId();
+      final initialItem = TestObject(id: id, name: 'Initial');
+      await repository.add(IdentifedObject(id, initialItem));
 
       final updatedItem = await repository.update(id, (current) {
         expect(current, initialItem);
-        return TestObject('Updated');
+        return TestObject(id: id, name: 'Updated');
       });
 
       final retrievedItem = await repository.get(id);
@@ -112,17 +124,17 @@ void main() {
 
     test('update throws notFound for non-existent item', () async {
       expect(
-        () => repository.update(
-            'non_existent_id', (current) => TestObject('Wont Happen')),
+        () => repository.update('non_existent_id',
+            (current) => TestObject(id: 'Wont Happen', name: 'Wont Happen')),
         throwsA(isA<RepositoryException>()
             .having((e) => e.code, 'code', RepositoryErrorCode.notFound)),
       );
     });
 
     test('delete existing item', () async {
-      final item = TestObject('Delete Me');
-      final id = 'delete_id';
-      await repository.addWithId(id, item);
+      final id = generateId();
+      final item = TestObject(id: id, name: 'Delete Me');
+      await repository.add(IdentifedObject(id, item));
 
       // Ensure it exists first
       expect(await repository.get(id), item);
@@ -150,26 +162,30 @@ void main() {
     // --- Query Tests ---
 
     test('query AllQuery returns all items', () async {
-      final item1 = TestObject('All 1');
-      final item2 = TestObject('All 2');
-      await repository.add(item1); // id: mem_0
-      await repository.add(item2); // id: mem_1
+      final id1 = generateId();
+      final id2 = generateId();
+      final item1 = TestObject(id: id1, name: 'All 1');
+      final item2 = TestObject(id: id2, name: 'All 2');
+      await repository.add(IdentifedObject(id1, item1));
+      await repository.add(IdentifedObject(id2, item2));
 
       final results = await repository.query(); // Default is AllQuery
       expect(results, containsAll([item1, item2]));
       expect(results.length, 2);
     });
 
-    test('query with InMemoryFilterQuery returns filtered items', () async {
-      final item1 = TestObject('Filter 1');
-      final item2 = TestObject('Keep Me');
-      final item3 = TestObject('Filter 3');
-      await repository.add(item1);
-      await repository.add(item2);
-      await repository.add(item3);
+    test('query returns filtered items', () async {
+      final id1 = generateId();
+      final id2 = generateId();
+      final id3 = generateId();
+      final item1 = TestObject(id: id1, name: 'Filter 1');
+      final item2 = TestObject(id: id2, name: 'Keep Me');
+      final item3 = TestObject(id: id3, name: 'Filter 3');
+      await repository.add(IdentifedObject(id1, item1));
+      await repository.add(IdentifedObject(id2, item2));
+      await repository.add(IdentifedObject(id3, item3));
 
-      final query =
-          InMemoryFilterQuery<TestObject>((item) => item.name == 'Keep Me');
+      final query = QueryByName('Keep Me');
       final results = await repository.query(query: query);
 
       expect(results, [item2]);
@@ -179,30 +195,24 @@ void main() {
     // --- Stream Tests ---
 
     test('stream emits existing item and updates', () async {
-      final id = 'stream_id_1';
-      final initialItem = TestObject('Stream Initial');
-      await repository.addWithId(id, initialItem);
+      final id = generateId();
+      final initialItem = TestObject(id: id, name: 'Stream Initial');
+      await repository.add(IdentifedObject(id, initialItem));
 
       final stream = repository.stream(id);
-      final updatedItem = TestObject('Stream Updated');
+      final updatedItem = TestObject(id: id, name: 'Stream Updated');
 
       expect(
           stream,
           emitsInOrder([
-            initialItem, // Initial value
-            updatedItem, // Updated value
-            // emitsDone // Stream shouldn't close here unless dispose is called
+            initialItem,
+            updatedItem,
           ]));
 
-      // Wait for the initial emit if necessary (sometimes helps with timing)
       await Future.delayed(Duration.zero);
 
       // Trigger update
       await repository.update(id, (_) => updatedItem);
-
-      // Optionally: Test closing the stream upon deletion
-      // await repository.delete(id);
-      // await Future.delayed(Duration.zero); // Allow stream event to propagate
     });
 
     test('stream emits notFound error for non-existent item', () async {
@@ -216,9 +226,9 @@ void main() {
     });
 
     test('stream emits update after initial notFound error', () async {
-      final id = 'stream_late_add';
+      final id = generateId();
       final stream = repository.stream(id);
-      final itemToAdd = TestObject('Added Late');
+      final itemToAdd = TestObject(id: id, name: 'Added Late');
 
       expect(
           stream,
@@ -230,17 +240,15 @@ void main() {
             itemToAdd,
           ]));
 
-      // Wait for the error event to potentially process
       await Future.delayed(Duration.zero);
 
-      // Add the item
-      await repository.addWithId(id, itemToAdd);
+      await repository.add(IdentifedObject(id, itemToAdd));
     });
 
     test('stream emits notFound error after deletion', () async {
-      final id = 'stream_delete_id';
-      final item = TestObject('Stream Delete');
-      await repository.addWithId(id, item);
+      final id = generateId();
+      final item = TestObject(id: id, name: 'Stream Delete');
+      await repository.add(IdentifedObject(id, item));
 
       final stream = repository.stream(id);
 
@@ -254,19 +262,18 @@ void main() {
             // emitsDone // Stream should also close after delete notification
           ]));
 
-      // Wait for initial emit
       await Future.delayed(Duration.zero);
-      // Delete the item
+
       await repository.delete(id);
-      // Wait for delete event
+
       await Future.delayed(Duration.zero);
-      // At this point, the controller should be closed by the delete logic.
-      // Further testing could involve checking if the stream `isDone`.
     });
 
     test('streamQuery AllQuery emits initial list and updates', () async {
-      final item1 = TestObject('QStream 1');
-      final item2 = TestObject('QStream 2');
+      final id1 = generateId();
+      final id2 = generateId();
+      final item1 = TestObject(id: id1, name: 'QStream 1');
+      final item2 = TestObject(id: id2, name: 'QStream 2');
 
       final stream = repository.streamQuery(); // Default is AllQuery
 
@@ -279,17 +286,19 @@ void main() {
           ]));
 
       // Add items after stream subscription
-      await repository.add(item1);
-      await repository.add(item2);
+      await repository.add(IdentifedObject(item1.id, item1));
+      await repository.add(IdentifedObject(item2.id, item2));
     });
 
     test('streamQuery with FilterQuery emits initial filtered list and updates',
         () async {
-      final filterQuery = InMemoryFilterQuery<TestObject>(
-          (item) => item.name.startsWith('Keep'));
-      final itemToKeep1 = TestObject('Keep 1');
-      final itemToFilter = TestObject('Filter Me');
-      final itemToKeep2 = TestObject('Keep 2');
+      final id1 = generateId();
+      final id2 = generateId();
+      final id3 = generateId();
+      final filterQuery = QueryByName('Keep');
+      final itemToKeep1 = TestObject(id: id1, name: 'Keep');
+      final itemToFilter = TestObject(id: id2, name: 'Filter Me');
+      final itemToKeep2 = TestObject(id: id3, name: 'Keep');
 
       final stream = repository.streamQuery(query: filterQuery);
 
@@ -303,18 +312,18 @@ void main() {
           ]));
 
       // Add items after stream subscription
-      await repository.add(itemToKeep1);
-      await repository.add(itemToFilter);
-      await repository.add(itemToKeep2);
+      await repository.add(IdentifedObject(itemToKeep1.id, itemToKeep1));
+      await repository.add(IdentifedObject(itemToFilter.id, itemToFilter));
+      await repository.add(IdentifedObject(itemToKeep2.id, itemToKeep2));
     });
 
     test('streamQuery handles deletion correctly', () async {
-      final item1 = TestObject('QS Del 1');
-      final item2 = TestObject('QS Del 2');
-      final id1 =
-          await repository.add(item1).then((_) => 'mem_0'); // Get generated ID
-      final id2 =
-          await repository.add(item2).then((_) => 'mem_1'); // Get generated ID
+      final id1 = generateId();
+      final id2 = generateId();
+      final item1 = TestObject(id: id1, name: 'QS Del 1');
+      final item2 = TestObject(id: id2, name: 'QS Del 2');
+      await repository.add(IdentifedObject(id1, item1));
+      await repository.add(IdentifedObject(id2, item2));
 
       final stream = repository.streamQuery(); // AllQuery
 
@@ -334,29 +343,36 @@ void main() {
     // --- Batch Operation Tests ---
 
     test('addAll adds multiple items and returns them', () async {
-      final itemsToAdd = [TestObject('Batch 1'), TestObject('Batch 2')];
+      final id1 = generateId();
+      final id2 = generateId();
+      final itemsToAdd = [
+        IdentifedObject(id1, TestObject(id: id1, name: 'Batch 1')),
+        IdentifedObject(id2, TestObject(id: id2, name: 'Batch 2')),
+      ];
       final addedItems = await repository.addAll(itemsToAdd);
 
-      expect(addedItems, containsAll(itemsToAdd));
+      expect(addedItems, containsAll(itemsToAdd.map((e) => e.object)));
       expect(addedItems.length, itemsToAdd.length);
 
       final results = await repository.query();
-      expect(results, containsAll(itemsToAdd));
+      expect(results, containsAll(itemsToAdd.map((e) => e.object)));
       expect(results.length, 2);
       // Check specific IDs if generator is predictable
-      expect(await repository.get('mem_0'), itemsToAdd[0]);
-      expect(await repository.get('mem_1'), itemsToAdd[1]);
+      expect(await repository.get(id1), itemsToAdd[0].object);
+      expect(await repository.get(id2), itemsToAdd[1].object);
     });
 
     test('updateAll updates multiple items', () async {
-      final item1 = TestObject('UpdateAll 1 Initial');
-      final item2 = TestObject('UpdateAll 2 Initial');
-      final id1 = await repository.add(item1).then((_) => 'mem_0');
-      final id2 = await repository.add(item2).then((_) => 'mem_1');
+      final id1 = generateId();
+      final id2 = generateId();
+      final item1 = TestObject(id: id1, name: 'UpdateAll 1 Initial');
+      final item2 = TestObject(id: id2, name: 'UpdateAll 2 Initial');
+      await repository.add(IdentifedObject(id1, item1));
+      await repository.add(IdentifedObject(id2, item2));
 
       final updates = [
-        IdentifedObject(id1, TestObject('UpdateAll 1 Updated')),
-        IdentifedObject(id2, TestObject('UpdateAll 2 Updated')),
+        IdentifedObject(id1, TestObject(id: id1, name: 'UpdateAll 1 Updated')),
+        IdentifedObject(id2, TestObject(id: id2, name: 'UpdateAll 2 Updated')),
       ];
 
       final updatedItems = await repository.updateAll(updates);
@@ -370,12 +386,15 @@ void main() {
     });
 
     test('updateAll throws notFound if any item doesnt exist', () async {
-      final item1 = TestObject('UpdateAll Exists');
-      final id1 = await repository.add(item1).then((_) => 'mem_0');
+      final id1 = generateId();
+      final item1 = TestObject(id: id1, name: 'UpdateAll Exists');
+      await repository.add(IdentifedObject(id1, item1));
 
       final updates = [
-        IdentifedObject(id1, TestObject('UpdateAll Exists Updated')),
-        IdentifedObject('non_existent', TestObject('UpdateAll NonExistent')),
+        IdentifedObject(
+            id1, TestObject(id: id1, name: 'UpdateAll Exists Updated')),
+        IdentifedObject('non_existent',
+            TestObject(id: 'non_existent', name: 'UpdateAll NonExistent')),
       ];
 
       expect(
@@ -390,12 +409,15 @@ void main() {
     });
 
     test('deleteAll removes multiple items', () async {
-      final item1 = TestObject('DeleteAll 1');
-      final item2 = TestObject('DeleteAll 2');
-      final item3 = TestObject('DeleteAll 3');
-      final id1 = await repository.add(item1).then((_) => 'mem_0');
-      final _ = await repository.add(item2).then((_) => 'mem_1');
-      final id3 = await repository.add(item3).then((_) => 'mem_2');
+      final id1 = generateId();
+      final id2 = generateId();
+      final id3 = generateId();
+      final item1 = TestObject(id: id1, name: 'DeleteAll 1');
+      final item2 = TestObject(id: id2, name: 'DeleteAll 2');
+      final item3 = TestObject(id: id3, name: 'DeleteAll 3');
+      await repository.add(IdentifedObject(id1, item1));
+      await repository.add(IdentifedObject(id2, item2));
+      await repository.add(IdentifedObject(id3, item3));
 
       await repository.deleteAll([id1, id3]);
 

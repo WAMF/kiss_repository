@@ -27,7 +27,6 @@ class InMemoryRepository<T> implements Repository<T> {
   final QueryBuilder<InMemoryFilterQuery<T>> _queryBuilder;
   final String _path;
   final Map<String, T> _items = {};
-  int _nextId = 0;
 
   // Stream controller for individual item updates using BehaviorSubject.
   final Map<String, BehaviorSubject<T>> _itemStreamControllers = {};
@@ -46,8 +45,6 @@ class InMemoryRepository<T> implements Repository<T> {
   String? get path => _path;
 
   String _fullItemPath(String id) => '$_path/$id';
-
-  // --- Read Operations ---
 
   @override
   Future<T> get(String id) async {
@@ -107,68 +104,36 @@ class InMemoryRepository<T> implements Repository<T> {
 
   @override
   Stream<List<T>> streamQuery({Query query = const AllQuery()}) {
-    // Use BehaviorSubject's value to get the initial list
     final subject = BehaviorSubject<List<T>>();
-
-    // Listen to the main query stream (_queryStreamController) for any changes
-    // and update this specific query's stream with the filtered results.
     final subscription = _queryStreamController
-        .map((_) => _getFilteredItems(
-            query)) // Recalculate filtered list on each update
+        .map((_) => _getFilteredItems(query))
         .handleError((error, stackTrace) {
-      // Handle errors from the main stream
       subject.addError(error, stackTrace);
     }).listen(
-      subject.add, // Add the newly filtered list to this query's subject
-      // onError handled by handleError
+      subject.add,
     );
 
-    // When the listener cancels, clean up the subscription and the subject if needed.
     subject.onCancel = () {
       subscription.cancel();
-      // BehaviorSubjects don't strictly need closing here if they are derived,
-      // but good practice if they were standalone. Let dispose handle main cleanup.
-      // Closing it here would prevent new listeners after the last one unsubscribed.
       if (!subject.hasListener) {
-        subject.close(); // Close subject if no more listeners are interested
+        subject.close();
       }
     };
 
     return subject.stream;
   }
 
-  // --- Single Item Operations ---
-
-  String _generateId() {
-    // Simple ID generation. Replace with UUID or other strategy if needed.
-    return 'mem_${_nextId++}';
-  }
-
   @override
-  Future<T> add(T item) async {
+  Future<T> add(IdentifedObject<T> item) async {
     await Future.delayed(Duration.zero);
-    final id = _generateId();
-    final itemPath = _fullItemPath(id);
+    final itemPath = _fullItemPath(item.id);
     if (_items.containsKey(itemPath)) {
-      throw RepositoryException.alreadyExists(id);
+      throw RepositoryException.alreadyExists(item.id);
     }
-    _items[itemPath] = item;
-    _notifyItemUpdate(id, item);
+    _items[itemPath] = item.object;
+    _notifyItemUpdate(item.id, item.object);
     _notifyQueryUpdate();
-    return item;
-  }
-
-  @override
-  Future<T> addWithId(String id, T item) async {
-    await Future.delayed(Duration.zero);
-    final itemPath = _fullItemPath(id);
-    if (_items.containsKey(itemPath)) {
-      throw RepositoryException.alreadyExists(id);
-    }
-    _items[itemPath] = item;
-    _notifyItemUpdate(id, item);
-    _notifyQueryUpdate();
-    return item;
+    return item.object;
   }
 
   @override
@@ -201,18 +166,18 @@ class InMemoryRepository<T> implements Repository<T> {
   // --- Batch Operations ---
 
   @override
-  Future<Iterable<T>> addAll(Iterable<T> items) async {
+  Future<Iterable<T>> addAll(Iterable<IdentifedObject<T>> items) async {
     await Future.delayed(Duration.zero);
     final addedItems = <T>[];
     final ids = <String>[];
     for (final item in items) {
-      final id = _generateId();
+      final id = item.id;
       final itemPath = _fullItemPath(id);
       if (_items.containsKey(itemPath)) {
         throw RepositoryException.alreadyExists(id);
       }
-      _items[itemPath] = item;
-      addedItems.add(item);
+      _items[itemPath] = item.object;
+      addedItems.add(item.object);
       ids.add(id);
     }
     for (var i = 0; i < ids.length; i++) {
@@ -289,20 +254,17 @@ class InMemoryRepository<T> implements Repository<T> {
     final subject = _itemStreamControllers[id];
     if (subject != null) {
       subject.addError(RepositoryException.notFound(id));
-      // It's generally better to close the stream after emitting the final error.
       subject.close();
       _itemStreamControllers.remove(id); // Remove after closing
     }
-    // No need to remove from _itemStreamControllers here if already closed/removed above
   }
 
   void _notifyQueryUpdate() {
-    // Add the latest snapshot of all items to the main query stream.
-    // Consumers of streamQuery will filter this list based on their specific query.
     _queryStreamController.add(List<T>.unmodifiable(_items.values));
   }
 
   /// Closes all stream controllers. Call this when the repository is disposed.
+  @override
   void dispose() {
     // Close all individual item subjects
     for (var subject in _itemStreamControllers.values) {
