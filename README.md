@@ -19,7 +19,7 @@ Add this package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  kiss_repository: ^0.8.0
+  kiss_repository: ^0.9.0
 ```
 
 ## Usage
