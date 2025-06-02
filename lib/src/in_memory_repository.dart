@@ -18,6 +18,12 @@ class InMemoryFilterQuery<T> extends Query {
 /// operations and streams for real-time updates.
 ///
 
+int _idCounter = 0;
+
+String _generateId() {
+  return 'Mem-${_idCounter++}';
+}
+
 class InMemoryRepository<T> implements Repository<T> {
   final QueryBuilder<InMemoryFilterQuery<T>> _queryBuilder;
   final String _path;
@@ -119,7 +125,28 @@ class InMemoryRepository<T> implements Repository<T> {
   }
 
   @override
-  Future<T> add(IdentifedObject<T> item) async {
+  IdentifiedObject<T> autoIdentify(
+    T object, {
+    T Function(
+      T object,
+      String id,
+    )? updateObjectWithId,
+  }) {
+    final id = _generateId();
+    final updatedObject = updateObjectWithId?.call(object, id) ?? object;
+    return IdentifiedObject(id, updatedObject);
+  }
+
+  @override
+  Future<T> addAutoIdentified(
+    T object, {
+    T Function(T object, String id)? updateObjectWithId,
+  }) async {
+    return add(autoIdentify(object, updateObjectWithId: updateObjectWithId));
+  }
+
+  @override
+  Future<T> add(IdentifiedObject<T> item) async {
     await Future.delayed(Duration.zero);
     final itemPath = _fullItemPath(item.id);
     if (_items.containsKey(itemPath)) {
@@ -161,7 +188,7 @@ class InMemoryRepository<T> implements Repository<T> {
   // --- Batch Operations ---
 
   @override
-  Future<Iterable<T>> addAll(Iterable<IdentifedObject<T>> items) async {
+  Future<Iterable<T>> addAll(Iterable<IdentifiedObject<T>> items) async {
     await Future.delayed(Duration.zero);
     final addedItems = <T>[];
     final ids = <String>[];
@@ -183,7 +210,7 @@ class InMemoryRepository<T> implements Repository<T> {
   }
 
   @override
-  Future<Iterable<T>> updateAll(Iterable<IdentifedObject<T>> items) async {
+  Future<Iterable<T>> updateAll(Iterable<IdentifiedObject<T>> items) async {
     await Future.delayed(Duration.zero);
     final updatedItems = <T>[];
     final Map<String, T> updates = {};

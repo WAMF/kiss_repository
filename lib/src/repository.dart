@@ -12,8 +12,8 @@ abstract class QueryBuilder<T> {
   T build(Query query);
 }
 
-class IdentifedObject<T> {
-  IdentifedObject(this.id, this.object);
+class IdentifiedObject<T> {
+  IdentifiedObject(this.id, this.object);
   final String id;
   final T object;
 }
@@ -54,15 +54,24 @@ abstract class Repository<T> {
   Future<List<T>> query({Query query = const AllQuery()});
   Stream<List<T>> streamQuery({Query query = const AllQuery()});
 
-  Future<T> add(IdentifedObject<T> item);
+  Future<T> add(IdentifiedObject<T> item);
   Future<T> update(String id, T Function(T current) updater);
   Future<void> delete(String id);
 
   //batch operations
-  Future<Iterable<T>> addAll(Iterable<IdentifedObject<T>> items);
-  Future<Iterable<T>> updateAll(Iterable<IdentifedObject<T>> items);
+  Future<Iterable<T>> addAll(Iterable<IdentifiedObject<T>> items);
+  Future<Iterable<T>> updateAll(Iterable<IdentifiedObject<T>> items);
   Future<void> deleteAll(Iterable<String> ids);
 
-  //dispose
+  //auto identify
+  IdentifiedObject<T> autoIdentify(
+    T object, {
+    T Function(T object, String id)? updateObjectWithId,
+  });
+  Future<T> addAutoIdentified(
+    T object, {
+    T Function(T object, String id)? updateObjectWithId,
+  });
+
   void dispose();
 }

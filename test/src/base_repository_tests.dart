@@ -32,6 +32,17 @@ class TestObject {
     required this.name,
   });
 
+  // Add copyWith method to support updating with generated ID
+  TestObject copyWith({
+    String? id,
+    String? name,
+  }) {
+    return TestObject(
+      id: id ?? this.id,
+      name: name ?? this.name,
+    );
+  }
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -45,11 +56,6 @@ class TestObject {
 
   @override
   String toString() => 'TestObject{name: $name}';
-}
-
-int _nextId = 0;
-String generateId() {
-  return 'mem_${_nextId++}';
 }
 
 void main() {
@@ -70,22 +76,25 @@ void main() {
     });
 
     test('add and get single item', () async {
-      final id = generateId();
-      final item = TestObject(id: id, name: 'Test 1');
-      final addedItem = await repository.add(IdentifedObject(id, item));
-      final retrievedItem = await repository.get(id);
+      final item = TestObject(id: '', name: 'Test 1');
+      final addedItem = await repository.addAutoIdentified(
+        item,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+      final retrievedItem = await repository.get(addedItem.id);
 
-      expect(addedItem, item);
-      expect(retrievedItem, item);
+      expect(addedItem.name, 'Test 1');
+      expect(addedItem.id, isNotEmpty);
+      expect(retrievedItem, addedItem);
     });
 
     test('add with specific ID and get single item', () async {
-      final id = generateId();
-      final item = TestObject(id: id, name: 'Test A');
-      await repository.add(IdentifedObject(id, item));
-      final retrievedItem = await repository.get(id);
+      final item = TestObject(id: 'specific_id', name: 'Test A');
+      final addedItem =
+          await repository.add(IdentifiedObject('specific_id', item));
+      final retrievedItem = await repository.get('specific_id');
 
-      expect(retrievedItem, item);
+      expect(retrievedItem, addedItem);
     });
 
     test('get throws notFound for non-existent item', () async {
@@ -97,29 +106,33 @@ void main() {
     });
 
     test('add throws alreadyExists for existing id', () async {
-      final id = generateId();
-      final item1 = TestObject(id: id, name: 'Test B');
-      await repository.add(IdentifedObject(id, item1));
+      final item1 = TestObject(id: '', name: 'Test B');
+      final addedItem1 = await repository.addAutoIdentified(
+        item1,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
 
-      final item2 = TestObject(id: id, name: 'Test C');
+      final item2 = TestObject(id: addedItem1.id, name: 'Test C');
       expect(
-        () => repository.add(IdentifedObject(id, item2)),
+        () => repository.add(IdentifiedObject(addedItem1.id, item2)),
         throwsA(isA<RepositoryException>()
             .having((e) => e.code, 'code', RepositoryErrorCode.alreadyExists)),
       );
     });
 
     test('update existing item', () async {
-      final id = generateId();
-      final initialItem = TestObject(id: id, name: 'Initial');
-      await repository.add(IdentifedObject(id, initialItem));
+      final item = TestObject(id: '', name: 'Initial');
+      final addedItem = await repository.addAutoIdentified(
+        item,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
 
-      final updatedItem = await repository.update(id, (current) {
-        expect(current, initialItem);
-        return TestObject(id: id, name: 'Updated');
+      final updatedItem = await repository.update(addedItem.id, (current) {
+        expect(current, addedItem);
+        return current.copyWith(name: 'Updated');
       });
 
-      final retrievedItem = await repository.get(id);
+      final retrievedItem = await repository.get(addedItem.id);
       expect(updatedItem.name, 'Updated');
       expect(retrievedItem.name, 'Updated');
       expect(retrievedItem, updatedItem);
@@ -135,18 +148,20 @@ void main() {
     });
 
     test('delete existing item', () async {
-      final id = generateId();
-      final item = TestObject(id: id, name: 'Delete Me');
-      await repository.add(IdentifedObject(id, item));
+      final item = TestObject(id: '', name: 'Delete Me');
+      final addedItem = await repository.addAutoIdentified(
+        item,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
 
       // Ensure it exists first
-      expect(await repository.get(id), item);
+      expect(await repository.get(addedItem.id), addedItem);
 
-      await repository.delete(id);
+      await repository.delete(addedItem.id);
 
       // Ensure it's gone
       expect(
-        () => repository.get(id),
+        () => repository.get(addedItem.id),
         throwsA(isA<RepositoryException>()
             .having((e) => e.code, 'code', RepositoryErrorCode.notFound)),
       );
@@ -165,57 +180,69 @@ void main() {
     // --- Query Tests ---
 
     test('query AllQuery returns all items', () async {
-      final id1 = generateId();
-      final id2 = generateId();
-      final item1 = TestObject(id: id1, name: 'All 1');
-      final item2 = TestObject(id: id2, name: 'All 2');
-      await repository.add(IdentifedObject(id1, item1));
-      await repository.add(IdentifedObject(id2, item2));
+      final item1 = TestObject(id: '', name: 'All 1');
+      final item2 = TestObject(id: '', name: 'All 2');
+      final addedItem1 = await repository.addAutoIdentified(
+        item1,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+      final addedItem2 = await repository.addAutoIdentified(
+        item2,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
 
       final results = await repository.query(); // Default is AllQuery
-      expect(results, containsAll([item1, item2]));
+      expect(results, containsAll([addedItem1, addedItem2]));
       expect(results.length, 2);
     });
 
     test('query returns filtered items', () async {
-      final id1 = generateId();
-      final id2 = generateId();
-      final id3 = generateId();
-      final item1 = TestObject(id: id1, name: 'Filter 1');
-      final item2 = TestObject(id: id2, name: 'Keep Me');
-      final item3 = TestObject(id: id3, name: 'Filter 3');
-      await repository.add(IdentifedObject(id1, item1));
-      await repository.add(IdentifedObject(id2, item2));
-      await repository.add(IdentifedObject(id3, item3));
+      final item1 = TestObject(id: '', name: 'Filter 1');
+      final item2 = TestObject(id: '', name: 'Keep Me');
+      final item3 = TestObject(id: '', name: 'Filter 3');
+      final addedItem1 = await repository.addAutoIdentified(
+        item1,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+      final addedItem2 = await repository.addAutoIdentified(
+        item2,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+      final addedItem3 = await repository.addAutoIdentified(
+        item3,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
 
       final query = QueryByName('Keep Me');
       final results = await repository.query(query: query);
 
-      expect(results, [item2]);
+      expect(results, [addedItem2]);
       expect(results.length, 1);
     });
 
     // --- Stream Tests ---
 
     test('stream emits existing item and updates', () async {
-      final id = generateId();
-      final initialItem = TestObject(id: id, name: 'Stream Initial');
-      await repository.add(IdentifedObject(id, initialItem));
+      final item = TestObject(id: '', name: 'Stream Initial');
+      final addedItem = await repository.addAutoIdentified(
+        item,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
 
-      final stream = repository.stream(id);
-      final updatedItem = TestObject(id: id, name: 'Stream Updated');
+      final stream = repository.stream(addedItem.id);
+      final updatedItem = addedItem.copyWith(name: 'Stream Updated');
 
       expect(
           stream,
           emitsInOrder([
-            initialItem,
+            addedItem,
             updatedItem,
           ]));
 
       await Future.delayed(Duration.zero);
 
       // Trigger update
-      await repository.update(id, (_) => updatedItem);
+      await repository.update(addedItem.id, (_) => updatedItem);
     });
 
     test('stream emits notFound error for non-existent item', () async {
@@ -229,9 +256,8 @@ void main() {
     });
 
     test('stream emits update after initial notFound error', () async {
-      final id = generateId();
-      final stream = repository.stream(id);
-      final itemToAdd = TestObject(id: id, name: 'Added Late');
+      final stream = repository.stream('future_item_id');
+      final itemToAdd = TestObject(id: 'future_item_id', name: 'Added Late');
 
       expect(
           stream,
@@ -245,20 +271,22 @@ void main() {
 
       await Future.delayed(Duration.zero);
 
-      await repository.add(IdentifedObject(id, itemToAdd));
+      await repository.add(IdentifiedObject('future_item_id', itemToAdd));
     });
 
     test('stream emits notFound error after deletion', () async {
-      final id = generateId();
-      final item = TestObject(id: id, name: 'Stream Delete');
-      await repository.add(IdentifedObject(id, item));
+      final item = TestObject(id: '', name: 'Stream Delete');
+      final addedItem = await repository.addAutoIdentified(
+        item,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
 
-      final stream = repository.stream(id);
+      final stream = repository.stream(addedItem.id);
 
       expect(
           stream,
           emitsInOrder([
-            item, // Initial emit
+            addedItem, // Initial emit
             // Then emits error because item is deleted
             emitsError(isA<RepositoryException>()
                 .having((e) => e.code, 'code', RepositoryErrorCode.notFound)),
@@ -267,16 +295,14 @@ void main() {
 
       await Future.delayed(Duration.zero);
 
-      await repository.delete(id);
+      await repository.delete(addedItem.id);
 
       await Future.delayed(Duration.zero);
     });
 
     test('streamQuery AllQuery emits initial list and updates', () async {
-      final id1 = generateId();
-      final id2 = generateId();
-      final item1 = TestObject(id: id1, name: 'QStream 1');
-      final item2 = TestObject(id: id2, name: 'QStream 2');
+      final item1 = TestObject(id: '', name: 'QStream 1');
+      final item2 = TestObject(id: '', name: 'QStream 2');
 
       final stream = repository.streamQuery(); // Default is AllQuery
 
@@ -284,24 +310,33 @@ void main() {
           stream,
           emitsInOrder([
             <TestObject>[], // Initial empty list
-            [item1], // After adding item1
-            [item1, item2], // After adding item2
+            emits(predicate<List<TestObject>>((list) =>
+                list.length == 1 &&
+                list.first.name == 'QStream 1')), // After adding item1
+            emits(predicate<List<TestObject>>((list) =>
+                list.length == 2 &&
+                list.any((item) => item.name == 'QStream 1') &&
+                list.any(
+                    (item) => item.name == 'QStream 2'))), // After adding item2
           ]));
 
       // Add items after stream subscription
-      await repository.add(IdentifedObject(item1.id, item1));
-      await repository.add(IdentifedObject(item2.id, item2));
+      await repository.addAutoIdentified(
+        item1,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+      await repository.addAutoIdentified(
+        item2,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
     });
 
     test('streamQuery with FilterQuery emits initial filtered list and updates',
         () async {
-      final id1 = generateId();
-      final id2 = generateId();
-      final id3 = generateId();
       final filterQuery = QueryByName('Keep');
-      final itemToKeep1 = TestObject(id: id1, name: 'Keep');
-      final itemToFilter = TestObject(id: id2, name: 'Filter Me');
-      final itemToKeep2 = TestObject(id: id3, name: 'Keep');
+      final itemToKeep1 = TestObject(id: '', name: 'Keep');
+      final itemToFilter = TestObject(id: '', name: 'Filter Me');
+      final itemToKeep2 = TestObject(id: '', name: 'Keep');
 
       final stream = repository.streamQuery(query: filterQuery);
 
@@ -309,49 +344,82 @@ void main() {
           stream,
           emitsInOrder([
             <TestObject>[], // Initial empty (filtered) list
-            [itemToKeep1], // After adding Keep 1
-            [itemToKeep1], // After adding Filter Me (filtered list unchanged)
-            [itemToKeep1, itemToKeep2], // After adding Keep 2
+            emits(predicate<List<TestObject>>((list) =>
+                list.length == 1 &&
+                list.first.name == 'Keep')), // After adding Keep 1
+            emits(predicate<List<TestObject>>((list) =>
+                list.length == 1 &&
+                list.first.name ==
+                    'Keep')), // After adding Filter Me (filtered list unchanged)
+            emits(predicate<List<TestObject>>((list) =>
+                list.length == 2 &&
+                list.every(
+                    (item) => item.name == 'Keep'))), // After adding Keep 2
           ]));
 
       // Add items after stream subscription
-      await repository.add(IdentifedObject(itemToKeep1.id, itemToKeep1));
-      await repository.add(IdentifedObject(itemToFilter.id, itemToFilter));
-      await repository.add(IdentifedObject(itemToKeep2.id, itemToKeep2));
+      await repository.addAutoIdentified(
+        itemToKeep1,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+      await repository.addAutoIdentified(
+        itemToFilter,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+      await repository.addAutoIdentified(
+        itemToKeep2,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
     });
 
     test('streamQuery handles deletion correctly', () async {
-      final id1 = generateId();
-      final id2 = generateId();
-      final item1 = TestObject(id: id1, name: 'QS Del 1');
-      final item2 = TestObject(id: id2, name: 'QS Del 2');
-      await repository.add(IdentifedObject(id1, item1));
-      await repository.add(IdentifedObject(id2, item2));
+      final item1 = TestObject(id: '', name: 'QS Del 1');
+      final item2 = TestObject(id: '', name: 'QS Del 2');
+      final addedItem1 = await repository.addAutoIdentified(
+        item1,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+      final addedItem2 = await repository.addAutoIdentified(
+        item2,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
 
       final stream = repository.streamQuery(); // AllQuery
 
       expect(
           stream,
           emitsInOrder([
-            [item1, item2], // Initial list
-            [item2], // After deleting item1
-            [], // After deleting item2
+            emits(predicate<List<TestObject>>((list) =>
+                list.length == 2 &&
+                list.any((item) => item.name == 'QS Del 1') &&
+                list.any((item) => item.name == 'QS Del 2'))), // Initial list
+            emits(predicate<List<TestObject>>((list) =>
+                list.length == 1 &&
+                list.first.name == 'QS Del 2')), // After deleting item1
+            <TestObject>[], // After deleting item2
           ]));
 
       // Delete items after stream subscription
-      await repository.delete(id1);
-      await repository.delete(id2);
+      await repository.delete(addedItem1.id);
+      await repository.delete(addedItem2.id);
     });
 
     // --- Batch Operation Tests ---
 
     test('addAll adds multiple items and returns them', () async {
-      final id1 = generateId();
-      final id2 = generateId();
-      final itemsToAdd = [
-        IdentifedObject(id1, TestObject(id: id1, name: 'Batch 1')),
-        IdentifedObject(id2, TestObject(id: id2, name: 'Batch 2')),
-      ];
+      final item1 = TestObject(id: '', name: 'Batch 1');
+      final item2 = TestObject(id: '', name: 'Batch 2');
+
+      final identifiedItem1 = repository.autoIdentify(
+        item1,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+      final identifiedItem2 = repository.autoIdentify(
+        item2,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+
+      final itemsToAdd = [identifiedItem1, identifiedItem2];
       final addedItems = await repository.addAll(itemsToAdd);
 
       expect(addedItems, containsAll(itemsToAdd.map((e) => e.object)));
@@ -360,22 +428,28 @@ void main() {
       final results = await repository.query();
       expect(results, containsAll(itemsToAdd.map((e) => e.object)));
       expect(results.length, 2);
-      // Check specific IDs if generator is predictable
-      expect(await repository.get(id1), itemsToAdd[0].object);
-      expect(await repository.get(id2), itemsToAdd[1].object);
+      // Check specific IDs
+      expect(await repository.get(identifiedItem1.id), identifiedItem1.object);
+      expect(await repository.get(identifiedItem2.id), identifiedItem2.object);
     });
 
     test('updateAll updates multiple items', () async {
-      final id1 = generateId();
-      final id2 = generateId();
-      final item1 = TestObject(id: id1, name: 'UpdateAll 1 Initial');
-      final item2 = TestObject(id: id2, name: 'UpdateAll 2 Initial');
-      await repository.add(IdentifedObject(id1, item1));
-      await repository.add(IdentifedObject(id2, item2));
+      final item1 = TestObject(id: '', name: 'UpdateAll 1 Initial');
+      final item2 = TestObject(id: '', name: 'UpdateAll 2 Initial');
+      final addedItem1 = await repository.addAutoIdentified(
+        item1,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+      final addedItem2 = await repository.addAutoIdentified(
+        item2,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
 
       final updates = [
-        IdentifedObject(id1, TestObject(id: id1, name: 'UpdateAll 1 Updated')),
-        IdentifedObject(id2, TestObject(id: id2, name: 'UpdateAll 2 Updated')),
+        IdentifiedObject(
+            addedItem1.id, addedItem1.copyWith(name: 'UpdateAll 1 Updated')),
+        IdentifiedObject(
+            addedItem2.id, addedItem2.copyWith(name: 'UpdateAll 2 Updated')),
       ];
 
       final updatedItems = await repository.updateAll(updates);
@@ -384,19 +458,21 @@ void main() {
       expect(updatedItems.map((e) => e.name),
           containsAll(['UpdateAll 1 Updated', 'UpdateAll 2 Updated']));
 
-      expect((await repository.get(id1)).name, 'UpdateAll 1 Updated');
-      expect((await repository.get(id2)).name, 'UpdateAll 2 Updated');
+      expect((await repository.get(addedItem1.id)).name, 'UpdateAll 1 Updated');
+      expect((await repository.get(addedItem2.id)).name, 'UpdateAll 2 Updated');
     });
 
     test('updateAll throws notFound if any item doesnt exist', () async {
-      final id1 = generateId();
-      final item1 = TestObject(id: id1, name: 'UpdateAll Exists');
-      await repository.add(IdentifedObject(id1, item1));
+      final item1 = TestObject(id: '', name: 'UpdateAll Exists');
+      final addedItem1 = await repository.addAutoIdentified(
+        item1,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
 
       final updates = [
-        IdentifedObject(
-            id1, TestObject(id: id1, name: 'UpdateAll Exists Updated')),
-        IdentifedObject('non_existent',
+        IdentifiedObject(addedItem1.id,
+            addedItem1.copyWith(name: 'UpdateAll Exists Updated')),
+        IdentifiedObject('non_existent',
             TestObject(id: 'non_existent', name: 'UpdateAll NonExistent')),
       ];
 
@@ -408,29 +484,87 @@ void main() {
       );
 
       // Check that the valid item wasn't updated (atomic failure)
-      expect((await repository.get(id1)).name, 'UpdateAll Exists');
+      expect((await repository.get(addedItem1.id)).name, 'UpdateAll Exists');
     });
 
     test('deleteAll removes multiple items', () async {
-      final id1 = generateId();
-      final id2 = generateId();
-      final id3 = generateId();
-      final item1 = TestObject(id: id1, name: 'DeleteAll 1');
-      final item2 = TestObject(id: id2, name: 'DeleteAll 2');
-      final item3 = TestObject(id: id3, name: 'DeleteAll 3');
-      await repository.add(IdentifedObject(id1, item1));
-      await repository.add(IdentifedObject(id2, item2));
-      await repository.add(IdentifedObject(id3, item3));
+      final item1 = TestObject(id: '', name: 'DeleteAll 1');
+      final item2 = TestObject(id: '', name: 'DeleteAll 2');
+      final item3 = TestObject(id: '', name: 'DeleteAll 3');
+      final addedItem1 = await repository.addAutoIdentified(
+        item1,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+      final addedItem2 = await repository.addAutoIdentified(
+        item2,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+      final addedItem3 = await repository.addAutoIdentified(
+        item3,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
 
-      await repository.deleteAll([id1, id3]);
+      await repository.deleteAll([addedItem1.id, addedItem3.id]);
 
       final results = await repository.query();
-      expect(results, [item2]); // Only item2 should remain
+      expect(results, [addedItem2]); // Only item2 should remain
       expect(results.length, 1);
 
       // Verify deletion
-      expect(() => repository.get(id1), throwsA(isA<RepositoryException>()));
-      expect(() => repository.get(id3), throwsA(isA<RepositoryException>()));
+      expect(() => repository.get(addedItem1.id),
+          throwsA(isA<RepositoryException>()));
+      expect(() => repository.get(addedItem3.id),
+          throwsA(isA<RepositoryException>()));
+    });
+
+    // --- Auto-Identify Tests ---
+
+    test('autoIdentify creates IdentifiedObject with generated ID', () async {
+      final item = TestObject(id: '', name: 'Auto Identify Test');
+      final identifiedObject = repository.autoIdentify(
+        item,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+
+      expect(identifiedObject.id, isNotEmpty);
+      expect(identifiedObject.object.id, identifiedObject.id);
+      expect(identifiedObject.object.name, 'Auto Identify Test');
+    });
+
+    test('addAutoIdentified adds item with generated ID', () async {
+      final item = TestObject(id: '', name: 'Auto Add Test');
+      final addedItem = await repository.addAutoIdentified(
+        item,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+
+      expect(addedItem.id, isNotEmpty);
+      expect(addedItem.name, 'Auto Add Test');
+
+      final retrievedItem = await repository.get(addedItem.id);
+      expect(retrievedItem, addedItem);
+    });
+
+    test('can fetch object created with autoIdentify', () async {
+      final originalItem = TestObject(id: '', name: 'Fetch Test Item');
+
+      // Create identified object using autoIdentify
+      final identifiedObject = repository.autoIdentify(
+        originalItem,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+
+      // Add it to the repository
+      final addedItem = await repository.add(identifiedObject);
+
+      // Fetch it back using the generated ID
+      final fetchedItem = await repository.get(identifiedObject.id);
+
+      // Verify the fetched item matches expectations
+      expect(fetchedItem.id, identifiedObject.id);
+      expect(fetchedItem.name, 'Fetch Test Item');
+      expect(fetchedItem, addedItem);
+      expect(fetchedItem, identifiedObject.object);
     });
   });
 }

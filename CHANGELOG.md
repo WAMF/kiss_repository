@@ -18,3 +18,8 @@
 ## 0.8.1
 
 - Update documentation
+
+## 0.9.0
+
+- Update interface to include auto ID generation - but do not implement any specific ID generation
+- Fix typo in inteface name for IdentifiedObject
