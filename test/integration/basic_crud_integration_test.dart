@@ -1,74 +1,57 @@
 import 'package:test/test.dart';
 import 'package:kiss_repository/kiss_repository.dart';
 
-import 'test_helpers.dart';
-import 'test_data.dart';
+import '../data/test_object.dart';
 
-void main() {
-  group('PocketBase Repository Integration Tests', () {
-    setUpAll(() async {
-      await IntegrationTestHelpers.setupIntegrationTests();
-    });
-
-    tearDownAll(() async {
-      await IntegrationTestHelpers.tearDownIntegrationTests();
-    });
-
-    setUp(() async {
-      await IntegrationTestHelpers.clearTestCollection();
-    });
-
+/// Run basic CRUD integration tests on any Repository<TestObject> implementation
+void runBasicCrudTests(Repository<TestObject> Function() repositoryFactory) {
+  group('Basic CRUD Operations', () {
     test('should perform complete CRUD lifecycle', () async {
-      final repository = IntegrationTestHelpers.repository;
-
-      // Create test user
-      final testUser = TestUser.create(
-        name: 'John Doe',
-        age: 30,
+      // Create test object
+      final testObject = TestObject.create(
+        name: 'Test Item',
         created: DateTime.now(),
       );
 
-      // CREATE: Add user using auto-identified method
-      final createdUser = await repository.addAutoIdentified(
-        testUser,
+      // CREATE: Add object using auto-identified method
+      final repository = repositoryFactory();
+      final createdObject = await repository.addAutoIdentified(
+        testObject,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
-      expect(createdUser.id, isNotEmpty);
-      expect(createdUser.name, equals('John Doe'));
-      expect(createdUser.age, equals(30));
-      print('✅ Created user: ${createdUser.id}');
+      expect(createdObject.id, isNotEmpty);
+      expect(createdObject.name, equals('Test Item'));
+      print('✅ Created object: ${createdObject.id}');
 
-      // READ: Get user by ID
-      final retrievedUser = await repository.get(createdUser.id);
-      expect(retrievedUser.id, equals(createdUser.id));
-      expect(retrievedUser.name, equals('John Doe'));
-      print('✅ Retrieved user: ${retrievedUser.id}');
+      // READ: Get object by ID
+      final retrievedObject = await repository.get(createdObject.id);
+      expect(retrievedObject.id, equals(createdObject.id));
+      expect(retrievedObject.name, equals('Test Item'));
+      print('✅ Retrieved object: ${retrievedObject.id}');
 
-      // UPDATE: Modify user
-      final savedUser = await repository.update(
-        createdUser.id,
-        (current) => current.copyWith(name: 'Jane Doe', age: 25),
+      // UPDATE: Modify object
+      final savedObject = await repository.update(
+        createdObject.id,
+        (current) => current.copyWith(name: 'Updated Item'),
       );
-      expect(savedUser.name, equals('Jane Doe'));
-      expect(savedUser.age, equals(25));
-      expect(savedUser.id, equals(createdUser.id)); // ID should remain same
-      print('✅ Updated user: ${savedUser.id}');
+      expect(savedObject.name, equals('Updated Item'));
+      expect(savedObject.id, equals(createdObject.id)); // ID should remain same
+      print('✅ Updated object: ${savedObject.id}');
 
-      // DELETE: Remove user
-      await repository.delete(savedUser.id);
-      print('✅ Deleted user: ${savedUser.id}');
+      // DELETE: Remove object
+      await repository.delete(savedObject.id);
+      print('✅ Deleted object: ${savedObject.id}');
 
       // Verify deletion
       expect(
-        () => repository.get(savedUser.id),
+        () => repository.get(savedObject.id),
         throwsA(isA<RepositoryException>()),
       );
       print('✅ Verified deletion');
     });
 
     test('should handle non-existent records gracefully', () async {
-      final repository = IntegrationTestHelpers.repository;
-
+      final repository = repositoryFactory();
       expect(
         () => repository.get('non_existent_id'),
         throwsA(isA<RepositoryException>()),
@@ -89,35 +72,37 @@ void main() {
     });
 
     test('should handle multiple sequential operations', () async {
-      final repository = IntegrationTestHelpers.repository;
-
-      final users = [
-        TestUser.create(name: 'User 1', age: 20, created: DateTime.now()),
-        TestUser.create(name: 'User 2', age: 25, created: DateTime.now()),
-        TestUser.create(name: 'User 3', age: 30, created: DateTime.now()),
+      final repository = repositoryFactory();
+      final objects = [
+        TestObject.create(name: 'Object 1', created: DateTime.now()),
+        TestObject.create(name: 'Object 2', created: DateTime.now()),
+        TestObject.create(name: 'Object 3', created: DateTime.now()),
       ];
 
-      final createdUsers = <TestUser>[];
-      for (final user in users) {
-        final created = await repository.addAutoIdentified(user);
-        createdUsers.add(created);
+      final createdObjects = <TestObject>[];
+      for (final obj in objects) {
+        final created = await repository.addAutoIdentified(
+          obj,
+          updateObjectWithId: (object, id) => object.copyWith(id: id),
+        );
+        createdObjects.add(created);
         expect(created.id, isNotEmpty);
       }
 
-      print('✅ Created ${createdUsers.length} users');
+      print('✅ Created ${createdObjects.length} objects');
 
-      for (final user in createdUsers) {
-        final retrieved = await repository.get(user.id);
-        expect(retrieved.id, equals(user.id));
+      for (final obj in createdObjects) {
+        final retrieved = await repository.get(obj.id);
+        expect(retrieved.id, equals(obj.id));
       }
 
-      print('✅ Retrieved all users successfully');
+      print('✅ Retrieved all objects successfully');
 
-      for (final user in createdUsers) {
-        await repository.delete(user.id);
+      for (final obj in createdObjects) {
+        await repository.delete(obj.id);
       }
 
-      print('✅ Cleaned up all test users');
+      print('✅ Cleaned up all test objects');
     });
   });
 }
