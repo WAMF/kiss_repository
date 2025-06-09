@@ -124,7 +124,7 @@ void runBasicBatchLogic({
       print('✅ Handled empty batch operations gracefully');
     });
 
-    framework.test('should handle batch operations with some failures', () async {
+    framework.test('should fail entire batch atomically when any item conflicts', () async {
       final repository = repositoryFactory();
 
       // First create an existing object
