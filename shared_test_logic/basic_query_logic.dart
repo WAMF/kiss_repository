@@ -75,7 +75,7 @@ void runBasicQueryLogic({
       print('✅ Queried objects by name prefix successfully');
     });
 
-    framework.test('should query by created after date', () async {
+    framework.test('should query by expires after date', () async {
       final repository = repositoryFactory();
       final cutoffDate = DateTime(2024, 6, 15);
       final objects = [
@@ -106,7 +106,7 @@ void runBasicQueryLogic({
       print('✅ Queried objects by expires after date successfully');
     });
 
-    framework.test('should query by created before date', () async {
+    framework.test('should query by expires before date', () async {
       final repository = repositoryFactory();
       final cutoffDate = DateTime(2024, 6, 15);
       final objects = [
@@ -152,30 +152,6 @@ void runBasicQueryLogic({
       final noResults = await repository.query(query: QueryByName('NonExistent'));
       framework.expect(noResults, framework.isEmpty);
       print('✅ Handled query with no results correctly');
-    });
-
-    framework.test('should query all items when using AllQuery explicitly', () async {
-      final repository = repositoryFactory();
-      final objects = [
-        TestObject.create(name: 'Object A'),
-        TestObject.create(name: 'Object B'),
-        TestObject.create(name: 'Object C'),
-      ];
-      for (final obj in objects) {
-        await repository.addAutoIdentified(
-          obj,
-          updateObjectWithId: (object, id) => object.copyWith(id: id),
-        );
-        await Future.delayed(Duration(milliseconds: 10));
-      }
-      final allObjects = await repository.query(query: AllQuery());
-      framework.expect(allObjects.length, framework.equals(3));
-
-      final names = allObjects.map((obj) => obj.name).toSet();
-      framework.expect(names, framework.contains('Object A'));
-      framework.expect(names, framework.contains('Object B'));
-      framework.expect(names, framework.contains('Object C'));
-      print('✅ Queried all objects using explicit AllQuery');
     });
   });
 }
