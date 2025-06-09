@@ -13,10 +13,7 @@ void runBasicStreamingLogic({
       final repository = repositoryFactory();
 
       // Create an object first
-      final testObject = TestObject.create(
-        name: 'Initial Name',
-        created: DateTime.now(),
-      );
+      final testObject = TestObject.create(name: 'Initial Name');
 
       final createdObject = await repository.addAutoIdentified(
         testObject,
@@ -60,14 +57,14 @@ void runBasicStreamingLogic({
       await Future.delayed(Duration(milliseconds: 200));
 
       // Add first object
-      final object1 = TestObject.create(name: 'Object 1', created: DateTime.now());
+      final object1 = TestObject.create(name: 'Object 1');
       final createdObject1 = await repository.addAutoIdentified(
         object1,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
 
       // Add second object
-      final object2 = TestObject.create(name: 'Object 2', created: DateTime.now());
+      final object2 = TestObject.create(name: 'Object 2');
       await repository.addAutoIdentified(
         object2,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
@@ -98,13 +95,13 @@ void runBasicStreamingLogic({
       final repository = repositoryFactory();
 
       // Create two objects
-      final object1 = TestObject.create(name: 'Object 1', created: DateTime.now());
+      final object1 = TestObject.create(name: 'Object 1');
       final createdObject1 = await repository.addAutoIdentified(
         object1,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
 
-      final object2 = TestObject.create(name: 'Object 2', created: DateTime.now());
+      final object2 = TestObject.create(name: 'Object 2');
       final createdObject2 = await repository.addAutoIdentified(
         object2,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
@@ -157,10 +154,10 @@ void runBasicStreamingLogic({
 
       // Generate a properly formatted ID using the repository's interface, but don't add it
       final autoIdentified = repository.autoIdentify(
-        TestObject.create(name: 'Dummy', created: DateTime.now()),
+        TestObject.create(name: 'Dummy'),
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
-      final nonExistentId = autoIdentified.id; 
+      final nonExistentId = autoIdentified.id;
 
       final stream = repository.stream(nonExistentId);
 
@@ -175,7 +172,7 @@ void runBasicStreamingLogic({
 
     framework.test('should stop emitting when document is deleted', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'To Be Deleted', created: DateTime.now());
+      final testObject = TestObject.create(name: 'To Be Deleted');
       final createdObject = await repository.addAutoIdentified(
         testObject,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
@@ -195,7 +192,7 @@ void runBasicStreamingLogic({
 
     framework.test('should emit initial data immediately on stream subscription', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'Immediate Object', created: DateTime.now());
+      final testObject = TestObject.create(name: 'Immediate Object');
       final createdObject = await repository.addAutoIdentified(
         testObject,
         updateObjectWithId: (object, id) => object.copyWith(id: id),

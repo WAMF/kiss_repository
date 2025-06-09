@@ -11,7 +11,7 @@ void runBasicErrorLogic({
   framework.group('Basic Error Handling', () {
     framework.test('should handle concurrent modifications', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'Original', created: DateTime.now());
+      final testObject = TestObject.create(name: 'Original');
       final createdObject = await repository.addAutoIdentified(
         testObject,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
@@ -30,7 +30,7 @@ void runBasicErrorLogic({
 
     framework.test('should handle repository disposal', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'Test Object', created: DateTime.now());
+      final testObject = TestObject.create(name: 'Test Object');
       final createdObject = await repository.addAutoIdentified(
         testObject,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
@@ -45,7 +45,7 @@ void runBasicErrorLogic({
       final repository = repositoryFactory();
       final objects = List.generate(
         30,
-        (i) => TestObject.create(name: 'Object $i', created: DateTime.now().subtract(Duration(days: i))),
+        (i) => TestObject.create(name: 'Object $i', expires: DateTime.now().add(Duration(days: i))),
       );
       final createdObjects = <TestObject>[];
       for (final obj in objects) {
@@ -69,7 +69,7 @@ void runBasicErrorLogic({
 
     framework.test('should handle operations on deleted documents', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'To Be Deleted', created: DateTime.now());
+      final testObject = TestObject.create(name: 'To Be Deleted');
       final createdObject = await repository.addAutoIdentified(
         testObject,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
@@ -83,7 +83,7 @@ void runBasicErrorLogic({
 
     framework.test('should handle rapid consecutive operations', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'Rapid Object', created: DateTime.now());
+      final testObject = TestObject.create(name: 'Rapid Object');
       final createdObject = await repository.addAutoIdentified(
         testObject,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
@@ -98,12 +98,12 @@ void runBasicErrorLogic({
 
     framework.test('should handle duplicate ID attempts correctly', () async {
       final repository = repositoryFactory();
-      final object1 = TestObject.create(name: 'First Object', created: DateTime.now());
+      final object1 = TestObject.create(name: 'First Object');
       final createdObject1 = await repository.addAutoIdentified(
         object1,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
-      final object2 = TestObject.create(name: 'Duplicate Object', created: DateTime.now());
+      final object2 = TestObject.create(name: 'Duplicate Object');
       framework.expect(
         () => repository.add(IdentifiedObject(createdObject1.id, object2.copyWith(id: createdObject1.id))),
         framework.throwsA(framework.isA<RepositoryException>()),
@@ -117,7 +117,7 @@ void runBasicErrorLogic({
       final repository = repositoryFactory();
       final emptyResults = await repository.query();
       framework.expect(emptyResults, framework.isEmpty);
-      final testObject = TestObject.create(name: 'Solo Object', created: DateTime.now());
+      final testObject = TestObject.create(name: 'Solo Object');
       await repository.addAutoIdentified(
         testObject,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
@@ -130,7 +130,7 @@ void runBasicErrorLogic({
 
     framework.test('should handle autoIdentify edge cases', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'Auto Object', created: DateTime.now());
+      final testObject = TestObject.create(name: 'Auto Object');
       final identified = repository.autoIdentify(
         testObject,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
@@ -168,7 +168,7 @@ void runBasicErrorLogic({
       await repository.delete('completely_non_existent_id');
 
       // deleteAll should also be graceful with mix of existent and non-existent IDs
-      final testObject = TestObject.create(name: 'Test Object', created: DateTime.now());
+      final testObject = TestObject.create(name: 'Test Object');
       final createdObject = await repository.addAutoIdentified(
         testObject,
         updateObjectWithId: (object, id) => object.copyWith(id: id),

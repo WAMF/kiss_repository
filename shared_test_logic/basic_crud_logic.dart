@@ -11,10 +11,7 @@ void runBasicCrudLogic({
   framework.group('Basic CRUD Operations', () {
     framework.test('should perform complete CRUD lifecycle', () async {
       // Create test object
-      final testObject = TestObject.create(
-        name: 'Test Item',
-        created: DateTime.now(),
-      );
+      final testObject = TestObject.create(name: 'Test Item');
 
       // CREATE: Add object using auto-identified method
       final repository = repositoryFactory();
@@ -75,9 +72,9 @@ void runBasicCrudLogic({
     framework.test('should handle multiple sequential operations', () async {
       final repository = repositoryFactory();
       final objects = [
-        TestObject.create(name: 'Object 1', created: DateTime.now()),
-        TestObject.create(name: 'Object 2', created: DateTime.now()),
-        TestObject.create(name: 'Object 3', created: DateTime.now()),
+        TestObject.create(name: 'Object 1'),
+        TestObject.create(name: 'Object 2'),
+        TestObject.create(name: 'Object 3'),
       ];
 
       final createdObjects = <TestObject>[];

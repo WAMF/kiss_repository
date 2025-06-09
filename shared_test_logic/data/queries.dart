@@ -15,6 +15,16 @@ class QueryByCreatedBefore extends Query {
   const QueryByCreatedBefore(this.date);
 }
 
+class QueryByExpiresAfter extends Query {
+  final DateTime date;
+  const QueryByExpiresAfter(this.date);
+}
+
+class QueryByExpiresBefore extends Query {
+  final DateTime date;
+  const QueryByExpiresBefore(this.date);
+}
+
 class TestObjectQueryBuilder implements QueryBuilder<String> {
   @override
   String build(Query query) {
@@ -28,6 +38,14 @@ class TestObjectQueryBuilder implements QueryBuilder<String> {
 
     if (query is QueryByCreatedBefore) {
       return 'created <= "${query.date.toIso8601String()}"';
+    }
+
+    if (query is QueryByExpiresAfter) {
+      return 'expires >= "${query.date.toIso8601String()}"';
+    }
+
+    if (query is QueryByExpiresBefore) {
+      return 'expires <= "${query.date.toIso8601String()}"';
     }
 
     return '';

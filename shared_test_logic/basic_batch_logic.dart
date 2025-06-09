@@ -12,9 +12,9 @@ void runBasicBatchLogic({
     framework.test('should add multiple items with addAll', () async {
       final repository = repositoryFactory();
       final objects = [
-        TestObject.create(name: 'Batch Object 1', created: DateTime.now()),
-        TestObject.create(name: 'Batch Object 2', created: DateTime.now()),
-        TestObject.create(name: 'Batch Object 3', created: DateTime.now()),
+        TestObject.create(name: 'Batch Object 1'),
+        TestObject.create(name: 'Batch Object 2'),
+        TestObject.create(name: 'Batch Object 3'),
       ];
 
       final identifiedObjects = objects
@@ -42,9 +42,9 @@ void runBasicBatchLogic({
     framework.test('should update multiple items with updateAll', () async {
       final repository = repositoryFactory();
       final objects = [
-        TestObject.create(name: 'Update Object 1', created: DateTime.now()),
-        TestObject.create(name: 'Update Object 2', created: DateTime.now()),
-        TestObject.create(name: 'Update Object 3', created: DateTime.now()),
+        TestObject.create(name: 'Update Object 1'),
+        TestObject.create(name: 'Update Object 2'),
+        TestObject.create(name: 'Update Object 3'),
       ];
 
       // First add the objects
@@ -78,9 +78,9 @@ void runBasicBatchLogic({
     framework.test('should delete multiple items with deleteAll', () async {
       final repository = repositoryFactory();
       final objects = [
-        TestObject.create(name: 'Delete Object 1', created: DateTime.now()),
-        TestObject.create(name: 'Delete Object 2', created: DateTime.now()),
-        TestObject.create(name: 'Delete Object 3', created: DateTime.now()),
+        TestObject.create(name: 'Delete Object 1'),
+        TestObject.create(name: 'Delete Object 2'),
+        TestObject.create(name: 'Delete Object 3'),
       ];
 
       // First add the objects
@@ -130,7 +130,6 @@ void runBasicBatchLogic({
       // First create an existing object
       final existingObject = TestObject.create(
         name: 'Existing Object',
-        created: DateTime.now(),
       );
       final createdExisting = await repository.addAutoIdentified(
         existingObject,
@@ -139,9 +138,9 @@ void runBasicBatchLogic({
 
       // Try to add a batch that includes the existing ID
       final batchObjects = [
-        TestObject.create(name: 'New Object 1', created: DateTime.now()),
+        TestObject.create(name: 'New Object 1'),
         createdExisting, // This should cause a failure
-        TestObject.create(name: 'New Object 2', created: DateTime.now()),
+        TestObject.create(name: 'New Object 2'),
       ];
 
       final identifiedBatch = batchObjects.map((obj) => IdentifiedObject(obj.id, obj)).toList();

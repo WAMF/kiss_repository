@@ -11,7 +11,7 @@ void runBasicIdLogic({
   framework.group('ID Management & Auto-Generation', () {
     framework.test('should auto-generate IDs with autoIdentify', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'Auto User', created: DateTime.now());
+      final testObject = TestObject.create(name: 'Auto User');
 
       final autoIdentified = repository.autoIdentify(
         testObject,
@@ -26,7 +26,7 @@ void runBasicIdLogic({
 
     framework.test('should add items with auto-generated IDs using addAutoIdentified', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'Auto Added User', created: DateTime.now());
+      final testObject = TestObject.create(name: 'Auto Added User');
 
       final addedObject = await repository.addAutoIdentified(
         testObject,
@@ -46,7 +46,7 @@ void runBasicIdLogic({
       final repository = repositoryFactory();
       final testObjects = List.generate(
         5,
-        (i) => TestObject.create(name: 'User $i', created: DateTime.now()),
+        (i) => TestObject.create(name: 'User $i'),
       );
 
       final addedObjects = <TestObject>[];
@@ -78,7 +78,7 @@ void runBasicIdLogic({
 
     framework.test('should work with autoIdentify then manual add', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'Manual Add User', created: DateTime.now());
+      final testObject = TestObject.create(name: 'Manual Add User');
 
       final autoIdentified = repository.autoIdentify(
         testObject,
@@ -98,7 +98,7 @@ void runBasicIdLogic({
 
     framework.test('should handle autoIdentify without updateObjectWithId (default behavior)', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'Default User', created: DateTime.now()).copyWith(id: 'original-id');
+      final testObject = TestObject.create(name: 'Default User').copyWith(id: 'original-id');
 
       final autoIdentified = repository.autoIdentify(testObject);
 
@@ -114,8 +114,8 @@ void runBasicIdLogic({
     framework.test('should handle autoIdentify in batch operations', () async {
       final repository = repositoryFactory();
       final testObjects = [
-        TestObject.create(name: 'Batch Object 1', created: DateTime.now()),
-        TestObject.create(name: 'Batch Object 2', created: DateTime.now()),
+        TestObject.create(name: 'Batch Object 1'),
+        TestObject.create(name: 'Batch Object 2'),
       ];
 
       final identifiedObjects = testObjects

@@ -15,9 +15,9 @@ void runBasicQueryLogic({
 
       // Add test data with specific timing to control creation order
       final objects = [
-        TestObject.create(name: 'First Object', created: DateTime(2024, 1, 1)),
-        TestObject.create(name: 'Second Object', created: DateTime(2024, 1, 2)),
-        TestObject.create(name: 'Third Object', created: DateTime(2024, 1, 3)),
+        TestObject.create(name: 'First Object'),
+        TestObject.create(name: 'Second Object'),
+        TestObject.create(name: 'Third Object'),
       ];
 
       final createdObjects = <TestObject>[];
@@ -52,10 +52,10 @@ void runBasicQueryLogic({
 
       // Add test objects with various names
       final objects = [
-        TestObject.create(name: 'Apple Item', created: DateTime.now()),
-        TestObject.create(name: 'Banana Item', created: DateTime.now()),
-        TestObject.create(name: 'Apple Product', created: DateTime.now()),
-        TestObject.create(name: 'Cherry Item', created: DateTime.now()),
+        TestObject.create(name: 'Apple Item'),
+        TestObject.create(name: 'Banana Item'),
+        TestObject.create(name: 'Apple Product'),
+        TestObject.create(name: 'Cherry Item'),
       ];
 
       for (final obj in objects) {
@@ -79,10 +79,10 @@ void runBasicQueryLogic({
       final repository = repositoryFactory();
       final cutoffDate = DateTime(2024, 6, 15);
       final objects = [
-        TestObject.create(name: 'Old Object 1', created: DateTime(2024, 6, 10)),
-        TestObject.create(name: 'Old Object 2', created: DateTime(2024, 6, 14)),
-        TestObject.create(name: 'New Object 1', created: DateTime(2024, 6, 16)),
-        TestObject.create(name: 'New Object 2', created: DateTime(2024, 6, 20)),
+        TestObject.create(name: 'Old Object 1', expires: DateTime(2024, 6, 10)),
+        TestObject.create(name: 'Old Object 2', expires: DateTime(2024, 6, 14)),
+        TestObject.create(name: 'New Object 1', expires: DateTime(2024, 6, 16)),
+        TestObject.create(name: 'New Object 2', expires: DateTime(2024, 6, 20)),
       ];
 
       for (final obj in objects) {
@@ -93,7 +93,7 @@ void runBasicQueryLogic({
         await Future.delayed(Duration(milliseconds: 10));
       }
 
-      final recentObjects = await repository.query(query: QueryByCreatedAfter(cutoffDate));
+      final recentObjects = await repository.query(query: QueryByExpiresAfter(cutoffDate));
       framework.expect(recentObjects.length, framework.equals(2));
 
       final names = recentObjects.map((obj) => obj.name).toSet();
@@ -101,19 +101,19 @@ void runBasicQueryLogic({
       framework.expect(names, framework.contains('New Object 2'));
 
       for (final obj in recentObjects) {
-        framework.expect(obj.created.isAfter(cutoffDate), framework.isTrue);
+        framework.expect(obj.expires.isAfter(cutoffDate), framework.isTrue);
       }
-      print('✅ Queried objects by created after date successfully');
+      print('✅ Queried objects by expires after date successfully');
     });
 
     framework.test('should query by created before date', () async {
       final repository = repositoryFactory();
       final cutoffDate = DateTime(2024, 6, 15);
       final objects = [
-        TestObject.create(name: 'Old Object 1', created: DateTime(2024, 6, 10)),
-        TestObject.create(name: 'Old Object 2', created: DateTime(2024, 6, 14)),
-        TestObject.create(name: 'New Object 1', created: DateTime(2024, 6, 16)),
-        TestObject.create(name: 'New Object 2', created: DateTime(2024, 6, 20)),
+        TestObject.create(name: 'Old Object 1', expires: DateTime(2024, 6, 10)),
+        TestObject.create(name: 'Old Object 2', expires: DateTime(2024, 6, 14)),
+        TestObject.create(name: 'New Object 1', expires: DateTime(2024, 6, 16)),
+        TestObject.create(name: 'New Object 2', expires: DateTime(2024, 6, 20)),
       ];
 
       for (final obj in objects) {
@@ -124,7 +124,7 @@ void runBasicQueryLogic({
         await Future.delayed(Duration(milliseconds: 10));
       }
 
-      final oldObjects = await repository.query(query: QueryByCreatedBefore(cutoffDate));
+      final oldObjects = await repository.query(query: QueryByExpiresBefore(cutoffDate));
       framework.expect(oldObjects.length, framework.equals(2));
 
       final names = oldObjects.map((obj) => obj.name).toSet();
@@ -132,16 +132,16 @@ void runBasicQueryLogic({
       framework.expect(names, framework.contains('Old Object 2'));
 
       for (final obj in oldObjects) {
-        framework.expect(obj.created.isBefore(cutoffDate), framework.isTrue);
+        framework.expect(obj.expires.isBefore(cutoffDate), framework.isTrue);
       }
-      print('✅ Queried objects by created before date successfully');
+      print('✅ Queried objects by expires before date successfully');
     });
 
     framework.test('should handle query with no results', () async {
       final repository = repositoryFactory();
       final objects = [
-        TestObject.create(name: 'Test Object', created: DateTime(2024, 1, 1)),
-        TestObject.create(name: 'Another Object', created: DateTime(2024, 1, 2)),
+        TestObject.create(name: 'Test Object'),
+        TestObject.create(name: 'Another Object'),
       ];
       for (final obj in objects) {
         await repository.addAutoIdentified(
@@ -157,9 +157,9 @@ void runBasicQueryLogic({
     framework.test('should query all items when using AllQuery explicitly', () async {
       final repository = repositoryFactory();
       final objects = [
-        TestObject.create(name: 'Object A', created: DateTime.now()),
-        TestObject.create(name: 'Object B', created: DateTime.now()),
-        TestObject.create(name: 'Object C', created: DateTime.now()),
+        TestObject.create(name: 'Object A'),
+        TestObject.create(name: 'Object B'),
+        TestObject.create(name: 'Object C'),
       ];
       for (final obj in objects) {
         await repository.addAutoIdentified(
