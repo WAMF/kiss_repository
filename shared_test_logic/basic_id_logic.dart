@@ -1,20 +1,20 @@
 import 'package:kiss_repository/kiss_repository.dart';
 
-import 'data/test_object.dart';
+import 'data/product_model.dart';
 import 'test_framework.dart';
 
 /// Shared, framework-agnostic test logic for ID management functionality.
 void runIdTests({
-  required Repository<TestObject> Function() repositoryFactory,
+  required Repository<ProductModel> Function() repositoryFactory,
   required TestFramework framework,
 }) {
   framework.group('ID Management & Auto-Generation', () {
     framework.test('should auto-generate IDs with autoIdentify', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'Auto User');
+      final productModel = ProductModel.create(name: 'Auto User', price: 9.99);
 
       final autoIdentified = repository.autoIdentify(
-        testObject,
+        productModel,
         updateObjectWithId: (object, generatedId) => object.copyWith(id: generatedId),
       );
 
@@ -26,10 +26,10 @@ void runIdTests({
 
     framework.test('should add items with auto-generated IDs using addAutoIdentified', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'Auto Added User');
+      final productModel = ProductModel.create(name: 'Auto Added User', price: 9.99);
 
       final addedObject = await repository.addAutoIdentified(
-        testObject,
+        productModel,
         updateObjectWithId: (object, generatedId) => object.copyWith(id: generatedId),
       );
 
@@ -44,15 +44,15 @@ void runIdTests({
 
     framework.test('should handle multiple auto-generated IDs being unique', () async {
       final repository = repositoryFactory();
-      final testObjects = List.generate(
+      final productModels = List.generate(
         5,
-        (i) => TestObject.create(name: 'User $i'),
+        (i) => ProductModel.create(name: 'User $i', price: 9.99),
       );
 
-      final addedObjects = <TestObject>[];
-      for (final testObject in testObjects) {
+      final addedObjects = <ProductModel>[];
+      for (final productModel in productModels) {
         final added = await repository.addAutoIdentified(
-          testObject,
+          productModel,
           updateObjectWithId: (object, generatedId) => object.copyWith(id: generatedId),
         );
         addedObjects.add(added);
@@ -78,10 +78,10 @@ void runIdTests({
 
     framework.test('should work with autoIdentify then manual add', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'Manual Add User');
+      final productModel = ProductModel.create(name: 'Manual Add User', price: 9.99);
 
       final autoIdentified = repository.autoIdentify(
-        testObject,
+        productModel,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
 
@@ -98,9 +98,9 @@ void runIdTests({
 
     framework.test('should handle autoIdentify without updateObjectWithId (default behavior)', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'Default User').copyWith(id: 'original-id');
+      final productModel = ProductModel.create(name: 'Default User', price: 9.99).copyWith(id: 'original-id');
 
-      final autoIdentified = repository.autoIdentify(testObject);
+      final autoIdentified = repository.autoIdentify(productModel);
 
       framework.expect(autoIdentified.id, framework.isNotEmpty);
       framework.expect(autoIdentified.id, framework.isNot('original-id'));
@@ -113,12 +113,12 @@ void runIdTests({
 
     framework.test('should handle autoIdentify in batch operations', () async {
       final repository = repositoryFactory();
-      final testObjects = [
-        TestObject.create(name: 'Batch Object 1'),
-        TestObject.create(name: 'Batch Object 2'),
+      final productModels = [
+        ProductModel.create(name: 'Batch Product 1', price: 9.99),
+        ProductModel.create(name: 'Batch Product 2', price: 9.99),
       ];
 
-      final identifiedObjects = testObjects
+      final identifiedObjects = productModels
           .map((obj) => repository.autoIdentify(
                 obj,
                 updateObjectWithId: (object, id) => object.copyWith(id: id),
@@ -141,7 +141,7 @@ void runIdTests({
       // Verify objects can be retrieved
       for (int i = 0; i < identifiedObjects.length; i++) {
         final retrieved = await repository.get(identifiedObjects[i].id);
-        framework.expect(retrieved.name, framework.equals(testObjects[i].name));
+        framework.expect(retrieved.name, framework.equals(productModels[i].name));
       }
       print('✅ AutoIdentify worked in batch operations');
     });

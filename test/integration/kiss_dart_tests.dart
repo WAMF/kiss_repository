@@ -7,40 +7,40 @@ import '../../shared_test_logic/basic_crud_logic.dart' as kiss;
 import '../../shared_test_logic/basic_id_logic.dart' as kiss;
 import '../../shared_test_logic/basic_query_logic.dart' as kiss;
 import '../../shared_test_logic/basic_streaming_logic.dart' as kiss;
-import '../../shared_test_logic/data/test_object.dart';
+import '../../shared_test_logic/data/product_model.dart';
 import 'dart_test_framework.dart';
 
 final _framework = DartTestFramework();
 
-void runDartCrudTests(Repository<TestObject> Function() repositoryFactory) {
+void runDartCrudTests(Repository<ProductModel> Function() repositoryFactory) {
   kiss.runCrudTests(
     repositoryFactory: repositoryFactory,
     framework: _framework,
   );
 }
 
-void runDartBatchTests(Repository<TestObject> Function() repositoryFactory) {
+void runDartBatchTests(Repository<ProductModel> Function() repositoryFactory) {
   kiss.runBatchTests(
     repositoryFactory: repositoryFactory,
     framework: _framework,
   );
 }
 
-void runDartQueryTests(Repository<TestObject> Function() repositoryFactory) {
+void runDartQueryTests(Repository<ProductModel> Function() repositoryFactory) {
   kiss.runQueryTests(
     repositoryFactory: repositoryFactory,
     framework: _framework,
   );
 }
 
-void runDartStreamingTests(Repository<TestObject> Function() repositoryFactory) {
+void runDartStreamingTests(Repository<ProductModel> Function() repositoryFactory) {
   kiss.runStreamingTests(
     repositoryFactory: repositoryFactory,
     framework: _framework,
   );
 }
 
-void runDartIdTests(Repository<TestObject> Function() repositoryFactory) {
+void runDartIdTests(Repository<ProductModel> Function() repositoryFactory) {
   kiss.runIdTests(
     repositoryFactory: repositoryFactory,
     framework: _framework,

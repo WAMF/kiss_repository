@@ -1,24 +1,24 @@
 import 'package:kiss_repository/kiss_repository.dart';
 
-import 'data/test_object.dart';
+import 'data/product_model.dart';
 import 'test_framework.dart';
 
 /// Shared, framework-agnostic test logic for basic batch operations.
 void runBatchTests({
-  required Repository<TestObject> Function() repositoryFactory,
+  required Repository<ProductModel> Function() repositoryFactory,
   required TestFramework framework,
 }) {
   framework.group('Basic Batch Operations', () {
     framework.test('should add multiple items with addAll', () async {
       final repository = repositoryFactory();
 
-      final objects = [
-        TestObject.create(name: 'Batch Object 1'),
-        TestObject.create(name: 'Batch Object 2'),
-        TestObject.create(name: 'Batch Object 3'),
+      final products = [
+        ProductModel.create(name: 'Batch Product 1', price: 9.99),
+        ProductModel.create(name: 'Batch Product 2', price: 9.99),
+        ProductModel.create(name: 'Batch Product 3', price: 9.99),
       ];
 
-      final identifiedObjects = objects
+      final identifiedObjects = products
           .map((obj) => repository.autoIdentify(
                 obj,
                 updateObjectWithId: (object, id) => object.copyWith(id: id),
@@ -29,28 +29,28 @@ void runBatchTests({
       final addedObjectsList = addedObjects.toList();
 
       framework.expect(addedObjectsList.length, framework.equals(3));
-      for (int i = 0; i < objects.length; i++) {
+      for (int i = 0; i < products.length; i++) {
         framework.expect(addedObjectsList[i].id, framework.equals(identifiedObjects[i].id));
-        framework.expect(addedObjectsList[i].name, framework.equals(objects[i].name));
+        framework.expect(addedObjectsList[i].name, framework.equals(products[i].name));
 
         final retrieved = await repository.get(identifiedObjects[i].id);
         framework.expect(retrieved.id, framework.equals(identifiedObjects[i].id));
-        framework.expect(retrieved.name, framework.equals(objects[i].name));
+        framework.expect(retrieved.name, framework.equals(products[i].name));
       }
     });
 
     framework.test('should update multiple items with updateAll', () async {
       final repository = repositoryFactory();
 
-      final objects = [
-        TestObject.create(name: 'Update Object 1'),
-        TestObject.create(name: 'Update Object 2'),
-        TestObject.create(name: 'Update Object 3'),
+      final products = [
+        ProductModel.create(name: 'Update Product 1', price: 9.99),
+        ProductModel.create(name: 'Update Product 2', price: 9.99),
+        ProductModel.create(name: 'Update Product 3', price: 9.99),
       ];
 
       // First add the objects
-      final createdObjects = <TestObject>[];
-      for (final obj in objects) {
+      final createdObjects = <ProductModel>[];
+      for (final obj in products) {
         final created = await repository.addAutoIdentified(
           obj,
           updateObjectWithId: (object, id) => object.copyWith(id: id),
@@ -68,25 +68,25 @@ void runBatchTests({
       framework.expect(updatedObjectsResult.length, framework.equals(3));
       for (int i = 0; i < createdObjects.length; i++) {
         framework.expect(updatedObjectsResult[i].id, framework.equals(createdObjects[i].id));
-        framework.expect(updatedObjectsResult[i].name, framework.equals('${objects[i].name} Updated'));
+        framework.expect(updatedObjectsResult[i].name, framework.equals('${products[i].name} Updated'));
 
         final retrieved = await repository.get(createdObjects[i].id);
-        framework.expect(retrieved.name, framework.equals('${objects[i].name} Updated'));
+        framework.expect(retrieved.name, framework.equals('${products[i].name} Updated'));
       }
     });
 
     framework.test('should delete multiple items with deleteAll', () async {
       final repository = repositoryFactory();
 
-      final objects = [
-        TestObject.create(name: 'Delete Object 1'),
-        TestObject.create(name: 'Delete Object 2'),
-        TestObject.create(name: 'Delete Object 3'),
+      final products = [
+        ProductModel.create(name: 'Delete Product 1', price: 9.99),
+        ProductModel.create(name: 'Delete Product 2', price: 9.99),
+        ProductModel.create(name: 'Delete Product 3', price: 9.99),
       ];
 
       // First add the objects
-      final createdObjects = <TestObject>[];
-      for (final obj in objects) {
+      final createdObjects = <ProductModel>[];
+      for (final obj in products) {
         final created = await repository.addAutoIdentified(
           obj,
           updateObjectWithId: (object, id) => object.copyWith(id: id),
@@ -115,10 +115,10 @@ void runBatchTests({
     framework.test('should handle empty batch operations', () async {
       final repository = repositoryFactory();
 
-      final emptyAddResult = await repository.addAll(<IdentifiedObject<TestObject>>[]);
+      final emptyAddResult = await repository.addAll(<IdentifiedObject<ProductModel>>[]);
       framework.expect(emptyAddResult, framework.isEmpty);
 
-      final emptyUpdateResult = await repository.updateAll(<IdentifiedObject<TestObject>>[]);
+      final emptyUpdateResult = await repository.updateAll(<IdentifiedObject<ProductModel>>[]);
       framework.expect(emptyUpdateResult, framework.isEmpty);
 
       await repository.deleteAll(<String>[]);
@@ -128,8 +128,9 @@ void runBatchTests({
       final repository = repositoryFactory();
 
       // First create an existing object
-      final existingObject = TestObject.create(
+      final existingObject = ProductModel.create(
         name: 'Existing Object',
+        price: 9.99,
       );
       final createdExisting = await repository.addAutoIdentified(
         existingObject,
@@ -138,9 +139,9 @@ void runBatchTests({
 
       // Try to add a batch that includes the existing ID
       final batchObjects = [
-        TestObject.create(name: 'New Object 1'),
+        ProductModel.create(name: 'New Product 1', price: 9.99),
         createdExisting, // This should cause a failure
-        TestObject.create(name: 'New Object 2'),
+        ProductModel.create(name: 'New Product 2', price: 9.99),
       ];
 
       final identifiedBatch = batchObjects.map((obj) => IdentifiedObject(obj.id, obj)).toList();
@@ -170,14 +171,14 @@ void runBatchTests({
 
       // Create one existing object
       final existingObject = await repository.addAutoIdentified(
-        TestObject.create(name: 'Existing Object'),
+        ProductModel.create(name: 'Existing Object', price: 9.99),
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
 
       // Try to update a batch that includes a non-existent ID
       final updateBatch = [
         IdentifiedObject(existingObject.id, existingObject.copyWith(name: 'Updated Existing')),
-        IdentifiedObject('non_existent_id', TestObject.create(name: 'Updated Non-Existent')),
+        IdentifiedObject('non_existent_id', ProductModel.create(name: 'Updated Non-Existent', price: 9.99)),
       ];
 
       framework.expect(

@@ -1,29 +1,29 @@
 import 'package:kiss_repository/kiss_repository.dart';
 
-import 'data/test_object.dart';
+import 'data/product_model.dart';
 import 'test_framework.dart';
 
 void runCrudTests({
-  required Repository<TestObject> Function() repositoryFactory,
+  required Repository<ProductModel> Function() repositoryFactory,
   required TestFramework framework,
 }) {
   framework.group('Basic CRUD Operations', () {
     framework.test('should perform complete CRUD lifecycle', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'Test Item');
+      final productModel = ProductModel.create(name: 'Sample Product', price: 9.99);
 
       // CREATE
       final createdObject = await repository.addAutoIdentified(
-        testObject,
+        productModel,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
       framework.expect(createdObject.id, framework.isNotEmpty);
-      framework.expect(createdObject.name, framework.equals('Test Item'));
+      framework.expect(createdObject.name, framework.equals('Sample Product'));
 
       // READ
       final retrievedObject = await repository.get(createdObject.id);
       framework.expect(retrievedObject.id, framework.equals(createdObject.id));
-      framework.expect(retrievedObject.name, framework.equals('Test Item'));
+      framework.expect(retrievedObject.name, framework.equals('Sample Product'));
 
       // UPDATE
       final savedObject = await repository.update(
@@ -70,9 +70,9 @@ void runCrudTests({
       final repository = repositoryFactory();
 
       // Create a test object
-      final testObject = TestObject.create(name: 'Test Object');
+      final productModel = ProductModel.create(name: 'Sample Product', price: 9.99);
       final createdObject = await repository.addAutoIdentified(
-        testObject,
+        productModel,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
 

@@ -15,17 +15,17 @@ class QueryByCreatedBefore extends Query {
   const QueryByCreatedBefore(this.date);
 }
 
-class QueryByExpiresAfter extends Query {
-  final DateTime date;
-  const QueryByExpiresAfter(this.date);
+class QueryByPriceGreaterThan extends Query {
+  final double price;
+  const QueryByPriceGreaterThan(this.price);
 }
 
-class QueryByExpiresBefore extends Query {
-  final DateTime date;
-  const QueryByExpiresBefore(this.date);
+class QueryByPriceLessThan extends Query {
+  final double price;
+  const QueryByPriceLessThan(this.price);
 }
 
-class TestObjectQueryBuilder implements QueryBuilder<String> {
+class ProductModelQueryBuilder implements QueryBuilder<String> {
   @override
   String build(Query query) {
     if (query is QueryByName) {
@@ -40,12 +40,12 @@ class TestObjectQueryBuilder implements QueryBuilder<String> {
       return 'created <= "${query.date.toIso8601String()}"';
     }
 
-    if (query is QueryByExpiresAfter) {
-      return 'expires >= "${query.date.toIso8601String()}"';
+    if (query is QueryByPriceGreaterThan) {
+      return 'price > ${query.price}';
     }
 
-    if (query is QueryByExpiresBefore) {
-      return 'expires <= "${query.date.toIso8601String()}"';
+    if (query is QueryByPriceLessThan) {
+      return 'price < ${query.price}';
     }
 
     return '';

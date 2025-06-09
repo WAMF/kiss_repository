@@ -1,10 +1,10 @@
 import 'package:kiss_repository/kiss_repository.dart';
 
-import 'data/test_object.dart';
+import 'data/product_model.dart';
 import 'test_framework.dart';
 
 void runStreamingTests({
-  required Repository<TestObject> Function() repositoryFactory,
+  required Repository<ProductModel> Function() repositoryFactory,
   required TestFramework framework,
 }) {
   framework.group('Basic Streaming Operations', () {
@@ -12,10 +12,10 @@ void runStreamingTests({
       final repository = repositoryFactory();
 
       // Create an object first
-      final testObject = TestObject.create(name: 'Initial Name');
+      final productModel = ProductModel.create(name: 'Initial Name', price: 9.99);
 
       final createdObject = await repository.addAutoIdentified(
-        testObject,
+        productModel,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
 
@@ -56,14 +56,14 @@ void runStreamingTests({
       await Future.delayed(Duration(milliseconds: 200));
 
       // Add first object
-      final object1 = TestObject.create(name: 'Object 1');
+      final object1 = ProductModel.create(name: 'Product 1', price: 9.99);
       final createdObject1 = await repository.addAutoIdentified(
         object1,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
 
       // Add second object
-      final object2 = TestObject.create(name: 'Object 2');
+      final object2 = ProductModel.create(name: 'Product 2', price: 9.99);
       await repository.addAutoIdentified(
         object2,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
@@ -72,7 +72,7 @@ void runStreamingTests({
       // Update first object
       await repository.update(
         createdObject1.id,
-        (current) => current.copyWith(name: 'Updated Object 1'),
+        (current) => current.copyWith(name: 'Updated Product 1'),
       );
 
       final emissions = await streamFuture.timeout(Duration(seconds: 15));
@@ -80,12 +80,12 @@ void runStreamingTests({
       framework.expect(emissions.length, framework.equals(4));
       framework.expect(emissions[0].length, framework.equals(0));
       framework.expect(emissions[1].length, framework.equals(1));
-      framework.expect(emissions[1][0].name, framework.equals('Object 1'));
+      framework.expect(emissions[1][0].name, framework.equals('Product 1'));
       framework.expect(emissions[2].length, framework.equals(2));
       framework.expect(emissions[3].length, framework.equals(2));
       framework.expect(
         emissions[3].firstWhere((obj) => obj.id == createdObject1.id).name,
-        framework.equals('Updated Object 1'),
+        framework.equals('Updated Product 1'),
       );
       print('✅ Streamed query results changes successfully');
     });
@@ -95,7 +95,7 @@ void runStreamingTests({
 
       // Generate a properly formatted ID using the repository's interface, but don't add it
       final autoIdentified = repository.autoIdentify(
-        TestObject.create(name: 'Dummy'),
+        ProductModel.create(name: 'Dummy', price: 9.99),
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
       final nonExistentId = autoIdentified.id;
@@ -113,13 +113,13 @@ void runStreamingTests({
 
     framework.test('should stop emitting when document is deleted', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'To Be Deleted');
+      final productModel = ProductModel.create(name: 'To Be Deleted', price: 9.99);
       final createdObject = await repository.addAutoIdentified(
-        testObject,
+        productModel,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
       final stream = repository.stream(createdObject.id);
-      final emissions = <TestObject>[];
+      final emissions = <ProductModel>[];
       final subscription = stream.listen((obj) => emissions.add(obj));
       await Future.delayed(Duration(milliseconds: 500));
       await repository.delete(createdObject.id);
@@ -133,9 +133,9 @@ void runStreamingTests({
 
     framework.test('should emit initial data immediately on stream subscription', () async {
       final repository = repositoryFactory();
-      final testObject = TestObject.create(name: 'Immediate Object');
+      final productModel = ProductModel.create(name: 'Immediate Object', price: 9.99);
       final createdObject = await repository.addAutoIdentified(
-        testObject,
+        productModel,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
       final stream = repository.stream(createdObject.id);

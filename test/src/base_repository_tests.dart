@@ -2,17 +2,17 @@ import 'package:kiss_repository/kiss_repository.dart';
 import 'package:test/test.dart';
 
 class InMemoryQueryBuilder
-    implements QueryBuilder<InMemoryFilterQuery<TestObject>> {
+    implements QueryBuilder<InMemoryFilterQuery<ProductModel>> {
   @override
-  InMemoryFilterQuery<TestObject> build(Query query) {
+  InMemoryFilterQuery<ProductModel> build(Query query) {
     if (query is QueryByName) {
       return InMemoryQueryByNameFilter(query);
     }
-    return InMemoryFilterQuery<TestObject>((item) => true);
+    return InMemoryFilterQuery<ProductModel>((item) => true);
   }
 }
 
-class InMemoryQueryByNameFilter extends InMemoryFilterQuery<TestObject> {
+class InMemoryQueryByNameFilter extends InMemoryFilterQuery<ProductModel> {
   final QueryByName query;
   InMemoryQueryByNameFilter(this.query)
       : super((item) => item.name == query.name);
@@ -24,20 +24,20 @@ class QueryByName implements Query {
 }
 
 // Simple class for testing
-class TestObject {
+class ProductModel {
   final String id;
   final String name;
-  TestObject({
+  ProductModel({
     required this.id,
     required this.name,
   });
 
   // Add copyWith method to support updating with generated ID
-  TestObject copyWith({
+  ProductModel copyWith({
     String? id,
     String? name,
   }) {
-    return TestObject(
+    return ProductModel(
       id: id ?? this.id,
       name: name ?? this.name,
     );
@@ -46,7 +46,7 @@ class TestObject {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is TestObject &&
+      other is ProductModel &&
           runtimeType == other.runtimeType &&
           id == other.id &&
           name == other.name;
@@ -55,19 +55,19 @@ class TestObject {
   int get hashCode => Object.hash(id, name);
 
   @override
-  String toString() => 'TestObject{name: $name}';
+  String toString() => 'ProductModel{name: $name}';
 }
 
 void main() {
   group('InMemoryRepository Tests', () {
-    late Repository<TestObject> repository;
+    late Repository<ProductModel> repository;
     late InMemoryQueryBuilder queryBuilder;
 
     setUp(() {
       queryBuilder = InMemoryQueryBuilder();
-      repository = InMemoryRepository<TestObject>(
+      repository = InMemoryRepository<ProductModel>(
         queryBuilder: queryBuilder,
-        path: 'test_objects',
+        path: 'products',
       );
     });
 
@@ -76,7 +76,7 @@ void main() {
     });
 
     test('add and get single item', () async {
-      final item = TestObject(id: '', name: 'Test 1');
+      final item = ProductModel(id: '', name: 'Test 1');
       final addedItem = await repository.addAutoIdentified(
         item,
         updateObjectWithId: (obj, id) => obj.copyWith(id: id),
@@ -89,7 +89,7 @@ void main() {
     });
 
     test('add with specific ID and get single item', () async {
-      final item = TestObject(id: 'specific_id', name: 'Test A');
+      final item = ProductModel(id: 'specific_id', name: 'Test A');
       final addedItem =
           await repository.add(IdentifiedObject('specific_id', item));
       final retrievedItem = await repository.get('specific_id');
@@ -106,13 +106,13 @@ void main() {
     });
 
     test('add throws alreadyExists for existing id', () async {
-      final item1 = TestObject(id: '', name: 'Test B');
+      final item1 = ProductModel(id: '', name: 'Test B');
       final addedItem1 = await repository.addAutoIdentified(
         item1,
         updateObjectWithId: (obj, id) => obj.copyWith(id: id),
       );
 
-      final item2 = TestObject(id: addedItem1.id, name: 'Test C');
+      final item2 = ProductModel(id: addedItem1.id, name: 'Test C');
       expect(
         () => repository.add(IdentifiedObject(addedItem1.id, item2)),
         throwsA(isA<RepositoryException>()
@@ -121,7 +121,7 @@ void main() {
     });
 
     test('update existing item', () async {
-      final item = TestObject(id: '', name: 'Initial');
+      final item = ProductModel(id: '', name: 'Initial');
       final addedItem = await repository.addAutoIdentified(
         item,
         updateObjectWithId: (obj, id) => obj.copyWith(id: id),
@@ -141,14 +141,14 @@ void main() {
     test('update throws notFound for non-existent item', () async {
       expect(
         () => repository.update('non_existent_id',
-            (current) => TestObject(id: 'Wont Happen', name: 'Wont Happen')),
+            (current) => ProductModel(id: 'Wont Happen', name: 'Wont Happen')),
         throwsA(isA<RepositoryException>()
             .having((e) => e.code, 'code', RepositoryErrorCode.notFound)),
       );
     });
 
     test('delete existing item', () async {
-      final item = TestObject(id: '', name: 'Delete Me');
+      final item = ProductModel(id: '', name: 'Delete Me');
       final addedItem = await repository.addAutoIdentified(
         item,
         updateObjectWithId: (obj, id) => obj.copyWith(id: id),
@@ -180,8 +180,8 @@ void main() {
     // --- Query Tests ---
 
     test('query AllQuery returns all items', () async {
-      final item1 = TestObject(id: '', name: 'All 1');
-      final item2 = TestObject(id: '', name: 'All 2');
+      final item1 = ProductModel(id: '', name: 'All 1');
+      final item2 = ProductModel(id: '', name: 'All 2');
       final addedItem1 = await repository.addAutoIdentified(
         item1,
         updateObjectWithId: (obj, id) => obj.copyWith(id: id),
@@ -197,9 +197,9 @@ void main() {
     });
 
     test('query returns filtered items', () async {
-      final item1 = TestObject(id: '', name: 'Filter 1');
-      final item2 = TestObject(id: '', name: 'Keep Me');
-      final item3 = TestObject(id: '', name: 'Filter 3');
+      final item1 = ProductModel(id: '', name: 'Filter 1');
+      final item2 = ProductModel(id: '', name: 'Keep Me');
+      final item3 = ProductModel(id: '', name: 'Filter 3');
 
       await repository.addAutoIdentified(
         item1,
@@ -224,7 +224,7 @@ void main() {
     // --- Stream Tests ---
 
     test('stream emits existing item and updates', () async {
-      final item = TestObject(id: '', name: 'Stream Initial');
+      final item = ProductModel(id: '', name: 'Stream Initial');
       final addedItem = await repository.addAutoIdentified(
         item,
         updateObjectWithId: (obj, id) => obj.copyWith(id: id),
@@ -258,7 +258,7 @@ void main() {
 
     test('stream emits update after initial notFound error', () async {
       final stream = repository.stream('future_item_id');
-      final itemToAdd = TestObject(id: 'future_item_id', name: 'Added Late');
+      final itemToAdd = ProductModel(id: 'future_item_id', name: 'Added Late');
 
       expect(
           stream,
@@ -276,7 +276,7 @@ void main() {
     });
 
     test('stream emits notFound error after deletion', () async {
-      final item = TestObject(id: '', name: 'Stream Delete');
+      final item = ProductModel(id: '', name: 'Stream Delete');
       final addedItem = await repository.addAutoIdentified(
         item,
         updateObjectWithId: (obj, id) => obj.copyWith(id: id),
@@ -302,19 +302,19 @@ void main() {
     });
 
     test('streamQuery AllQuery emits initial list and updates', () async {
-      final item1 = TestObject(id: '', name: 'QStream 1');
-      final item2 = TestObject(id: '', name: 'QStream 2');
+      final item1 = ProductModel(id: '', name: 'QStream 1');
+      final item2 = ProductModel(id: '', name: 'QStream 2');
 
       final stream = repository.streamQuery(); // Default is AllQuery
 
       expect(
           stream,
           emitsInOrder([
-            <TestObject>[], // Initial empty list
-            emits(predicate<List<TestObject>>((list) =>
+            <ProductModel>[], // Initial empty list
+            emits(predicate<List<ProductModel>>((list) =>
                 list.length == 1 &&
                 list.first.name == 'QStream 1')), // After adding item1
-            emits(predicate<List<TestObject>>((list) =>
+            emits(predicate<List<ProductModel>>((list) =>
                 list.length == 2 &&
                 list.any((item) => item.name == 'QStream 1') &&
                 list.any(
@@ -335,24 +335,24 @@ void main() {
     test('streamQuery with FilterQuery emits initial filtered list and updates',
         () async {
       final filterQuery = QueryByName('Keep');
-      final itemToKeep1 = TestObject(id: '', name: 'Keep');
-      final itemToFilter = TestObject(id: '', name: 'Filter Me');
-      final itemToKeep2 = TestObject(id: '', name: 'Keep');
+      final itemToKeep1 = ProductModel(id: '', name: 'Keep');
+      final itemToFilter = ProductModel(id: '', name: 'Filter Me');
+      final itemToKeep2 = ProductModel(id: '', name: 'Keep');
 
       final stream = repository.streamQuery(query: filterQuery);
 
       expect(
           stream,
           emitsInOrder([
-            <TestObject>[], // Initial empty (filtered) list
-            emits(predicate<List<TestObject>>((list) =>
+            <ProductModel>[], // Initial empty (filtered) list
+            emits(predicate<List<ProductModel>>((list) =>
                 list.length == 1 &&
                 list.first.name == 'Keep')), // After adding Keep 1
-            emits(predicate<List<TestObject>>((list) =>
+            emits(predicate<List<ProductModel>>((list) =>
                 list.length == 1 &&
                 list.first.name ==
                     'Keep')), // After adding Filter Me (filtered list unchanged)
-            emits(predicate<List<TestObject>>((list) =>
+            emits(predicate<List<ProductModel>>((list) =>
                 list.length == 2 &&
                 list.every(
                     (item) => item.name == 'Keep'))), // After adding Keep 2
@@ -374,8 +374,8 @@ void main() {
     });
 
     test('streamQuery handles deletion correctly', () async {
-      final item1 = TestObject(id: '', name: 'QS Del 1');
-      final item2 = TestObject(id: '', name: 'QS Del 2');
+      final item1 = ProductModel(id: '', name: 'QS Del 1');
+      final item2 = ProductModel(id: '', name: 'QS Del 2');
       final addedItem1 = await repository.addAutoIdentified(
         item1,
         updateObjectWithId: (obj, id) => obj.copyWith(id: id),
@@ -390,14 +390,14 @@ void main() {
       expect(
           stream,
           emitsInOrder([
-            emits(predicate<List<TestObject>>((list) =>
+            emits(predicate<List<ProductModel>>((list) =>
                 list.length == 2 &&
                 list.any((item) => item.name == 'QS Del 1') &&
                 list.any((item) => item.name == 'QS Del 2'))), // Initial list
-            emits(predicate<List<TestObject>>((list) =>
+            emits(predicate<List<ProductModel>>((list) =>
                 list.length == 1 &&
                 list.first.name == 'QS Del 2')), // After deleting item1
-            <TestObject>[], // After deleting item2
+            <ProductModel>[], // After deleting item2
           ]));
 
       // Delete items after stream subscription
@@ -408,8 +408,8 @@ void main() {
     // --- Batch Operation Tests ---
 
     test('addAll adds multiple items and returns them', () async {
-      final item1 = TestObject(id: '', name: 'Batch 1');
-      final item2 = TestObject(id: '', name: 'Batch 2');
+      final item1 = ProductModel(id: '', name: 'Batch 1');
+      final item2 = ProductModel(id: '', name: 'Batch 2');
 
       final identifiedItem1 = repository.autoIdentify(
         item1,
@@ -435,8 +435,8 @@ void main() {
     });
 
     test('updateAll updates multiple items', () async {
-      final item1 = TestObject(id: '', name: 'UpdateAll 1 Initial');
-      final item2 = TestObject(id: '', name: 'UpdateAll 2 Initial');
+      final item1 = ProductModel(id: '', name: 'UpdateAll 1 Initial');
+      final item2 = ProductModel(id: '', name: 'UpdateAll 2 Initial');
       final addedItem1 = await repository.addAutoIdentified(
         item1,
         updateObjectWithId: (obj, id) => obj.copyWith(id: id),
@@ -464,7 +464,7 @@ void main() {
     });
 
     test('updateAll throws notFound if any item doesnt exist', () async {
-      final item1 = TestObject(id: '', name: 'UpdateAll Exists');
+      final item1 = ProductModel(id: '', name: 'UpdateAll Exists');
       final addedItem1 = await repository.addAutoIdentified(
         item1,
         updateObjectWithId: (obj, id) => obj.copyWith(id: id),
@@ -474,7 +474,7 @@ void main() {
         IdentifiedObject(addedItem1.id,
             addedItem1.copyWith(name: 'UpdateAll Exists Updated')),
         IdentifiedObject('non_existent',
-            TestObject(id: 'non_existent', name: 'UpdateAll NonExistent')),
+            ProductModel(id: 'non_existent', name: 'UpdateAll NonExistent')),
       ];
 
       expect(
@@ -489,9 +489,9 @@ void main() {
     });
 
     test('deleteAll removes multiple items', () async {
-      final item1 = TestObject(id: '', name: 'DeleteAll 1');
-      final item2 = TestObject(id: '', name: 'DeleteAll 2');
-      final item3 = TestObject(id: '', name: 'DeleteAll 3');
+      final item1 = ProductModel(id: '', name: 'DeleteAll 1');
+      final item2 = ProductModel(id: '', name: 'DeleteAll 2');
+      final item3 = ProductModel(id: '', name: 'DeleteAll 3');
       final addedItem1 = await repository.addAutoIdentified(
         item1,
         updateObjectWithId: (obj, id) => obj.copyWith(id: id),
@@ -521,7 +521,7 @@ void main() {
     // --- Auto-Identify Tests ---
 
     test('autoIdentify creates IdentifiedObject with generated ID', () async {
-      final item = TestObject(id: '', name: 'Auto Identify Test');
+      final item = ProductModel(id: '', name: 'Auto Identify Test');
       final identifiedObject = repository.autoIdentify(
         item,
         updateObjectWithId: (obj, id) => obj.copyWith(id: id),
@@ -533,7 +533,7 @@ void main() {
     });
 
     test('addAutoIdentified adds item with generated ID', () async {
-      final item = TestObject(id: '', name: 'Auto Add Test');
+      final item = ProductModel(id: '', name: 'Auto Add Test');
       final addedItem = await repository.addAutoIdentified(
         item,
         updateObjectWithId: (obj, id) => obj.copyWith(id: id),
@@ -547,7 +547,7 @@ void main() {
     });
 
     test('can fetch object created with autoIdentify', () async {
-      final originalItem = TestObject(id: '', name: 'Fetch Test Item');
+      final originalItem = ProductModel(id: '', name: 'Fetch Sample Product');
 
       // Create identified object using autoIdentify
       final identifiedObject = repository.autoIdentify(
@@ -563,7 +563,7 @@ void main() {
 
       // Verify the fetched item matches expectations
       expect(fetchedItem.id, identifiedObject.id);
-      expect(fetchedItem.name, 'Fetch Test Item');
+      expect(fetchedItem.name, 'Fetch Sample Product');
       expect(fetchedItem, addedItem);
       expect(fetchedItem, identifiedObject.object);
     });
