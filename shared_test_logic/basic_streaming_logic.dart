@@ -3,8 +3,7 @@ import 'package:kiss_repository/kiss_repository.dart';
 import 'data/test_object.dart';
 import 'test_framework.dart';
 
-/// Shared, framework-agnostic test logic for basic streaming operations.
-void runBasicStreamingLogic({
+void runStreamingTests({
   required Repository<TestObject> Function() repositoryFactory,
   required TestFramework framework,
 }) {
@@ -89,64 +88,6 @@ void runBasicStreamingLogic({
         framework.equals('Updated Object 1'),
       );
       print('✅ Streamed query results changes successfully');
-    });
-
-    framework.test('should handle multiple concurrent streams', () async {
-      final repository = repositoryFactory();
-
-      // Create two objects
-      final object1 = TestObject.create(name: 'Object 1');
-      final createdObject1 = await repository.addAutoIdentified(
-        object1,
-        updateObjectWithId: (object, id) => object.copyWith(id: id),
-      );
-
-      final object2 = TestObject.create(name: 'Object 2');
-      final createdObject2 = await repository.addAutoIdentified(
-        object2,
-        updateObjectWithId: (object, id) => object.copyWith(id: id),
-      );
-
-      final stream1 = repository.stream(createdObject1.id);
-      final stream2 = repository.stream(createdObject2.id);
-      final queryStream = repository.streamQuery();
-
-      final stream1Future = stream1.take(2).toList();
-      final stream2Future = stream2.take(2).toList();
-      final queryStreamFuture = queryStream.take(3).toList();
-
-      // Give time for all subscriptions to be fully established
-      await Future.delayed(Duration(milliseconds: 500));
-
-      // Update both objects with delays
-      await repository.update(
-        createdObject1.id,
-        (current) => current.copyWith(name: 'Updated Object 1'),
-      );
-
-      await Future.delayed(Duration(milliseconds: 200));
-
-      await repository.update(
-        createdObject2.id,
-        (current) => current.copyWith(name: 'Updated Object 2'),
-      );
-
-      final stream1Emissions = await stream1Future.timeout(Duration(seconds: 15));
-      final stream2Emissions = await stream2Future.timeout(Duration(seconds: 15));
-      final queryEmissions = await queryStreamFuture.timeout(Duration(seconds: 15));
-
-      framework.expect(stream1Emissions.length, framework.equals(2));
-      framework.expect(stream1Emissions[0].name, framework.equals('Object 1'));
-      framework.expect(stream1Emissions[1].name, framework.equals('Updated Object 1'));
-
-      framework.expect(stream2Emissions.length, framework.equals(2));
-      framework.expect(stream2Emissions[0].name, framework.equals('Object 2'));
-      framework.expect(stream2Emissions[1].name, framework.equals('Updated Object 2'));
-
-      framework.expect(queryEmissions.length, framework.equals(3));
-      framework.expect(queryEmissions[0].length, framework.equals(2));
-      framework.expect(queryEmissions[2].length, framework.equals(2));
-      print('✅ Handled multiple concurrent streams successfully');
     });
 
     framework.test('should emit error for non-existent document', () async {

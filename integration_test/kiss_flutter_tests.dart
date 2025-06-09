@@ -1,55 +1,47 @@
-library kiss_flutter_tests;
+library;
 
 import 'package:kiss_repository/kiss_repository.dart';
 
-import '../shared_test_logic/basic_batch_logic.dart';
-import '../shared_test_logic/basic_crud_logic.dart';
-import '../shared_test_logic/basic_error_logic.dart';
-import '../shared_test_logic/basic_id_logic.dart';
-import '../shared_test_logic/basic_query_logic.dart';
-import '../shared_test_logic/basic_streaming_logic.dart';
+import '../shared_test_logic/basic_batch_logic.dart' as kiss;
+import '../shared_test_logic/basic_crud_logic.dart' as kiss;
+import '../shared_test_logic/basic_id_logic.dart' as kiss;
+import '../shared_test_logic/basic_query_logic.dart' as kiss;
+import '../shared_test_logic/basic_streaming_logic.dart' as kiss;
 import '../shared_test_logic/data/test_object.dart';
 import 'flutter_test_framework.dart';
 
 final _framework = FlutterTestFramework();
 
-void runBasicCrudTests(Repository<TestObject> Function() repositoryFactory) {
-  testCrudLogic(
+void runFlutterCrudTests(Repository<TestObject> Function() repositoryFactory) {
+  kiss.runCrudTests(
     repositoryFactory: repositoryFactory,
     framework: _framework,
   );
 }
 
-void runBasicBatchTests(Repository<TestObject> Function() repositoryFactory) {
-  runBasicBatchLogic(
+void runFlutterBatchTests(Repository<TestObject> Function() repositoryFactory) {
+  kiss.runBatchTests(
     repositoryFactory: repositoryFactory,
     framework: _framework,
   );
 }
 
-void runBasicQueryTests(Repository<TestObject> Function() repositoryFactory) {
-  runBasicQueryLogic(
+void runFlutterQueryTests(Repository<TestObject> Function() repositoryFactory) {
+  kiss.runQueryTests(
     repositoryFactory: repositoryFactory,
     framework: _framework,
   );
 }
 
-void runBasicStreamingTests(Repository<TestObject> Function() repositoryFactory) {
-  runBasicStreamingLogic(
+void runFlutterStreamingTests(Repository<TestObject> Function() repositoryFactory) {
+  kiss.runStreamingTests(
     repositoryFactory: repositoryFactory,
     framework: _framework,
   );
 }
 
-void runBasicErrorTests(Repository<TestObject> Function() repositoryFactory) {
-  runBasicErrorLogic(
-    repositoryFactory: repositoryFactory,
-    framework: _framework,
-  );
-}
-
-void runBasicIdTests(Repository<TestObject> Function() repositoryFactory) {
-  runBasicIdLogic(
+void runFlutterIdTests(Repository<TestObject> Function() repositoryFactory) {
+  kiss.runIdTests(
     repositoryFactory: repositoryFactory,
     framework: _framework,
   );

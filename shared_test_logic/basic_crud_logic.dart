@@ -3,7 +3,7 @@ import 'package:kiss_repository/kiss_repository.dart';
 import 'data/test_object.dart';
 import 'test_framework.dart';
 
-void testCrudLogic({
+void runCrudTests({
   required Repository<TestObject> Function() repositoryFactory,
   required TestFramework framework,
 }) {

@@ -5,7 +5,7 @@ import 'data/test_object.dart';
 import 'test_framework.dart';
 
 /// Shared, framework-agnostic test logic for basic query operations.
-void runBasicQueryLogic({
+void runQueryTests({
   required Repository<TestObject> Function() repositoryFactory,
   required TestFramework framework,
 }) {

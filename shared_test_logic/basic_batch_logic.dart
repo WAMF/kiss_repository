@@ -4,7 +4,7 @@ import 'data/test_object.dart';
 import 'test_framework.dart';
 
 /// Shared, framework-agnostic test logic for basic batch operations.
-void runBasicBatchLogic({
+void runBatchTests({
   required Repository<TestObject> Function() repositoryFactory,
   required TestFramework framework,
 }) {
