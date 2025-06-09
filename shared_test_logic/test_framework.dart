@@ -17,4 +17,5 @@ abstract class TestFramework {
   dynamic throwsA(dynamic matcher);
   dynamic isA<T>();
   dynamic get isTrue;
+  dynamic isNot(dynamic matcher);
 }

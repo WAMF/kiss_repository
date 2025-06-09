@@ -5,6 +5,7 @@ import 'package:kiss_repository/kiss_repository.dart';
 import '../shared_test_logic/basic_batch_logic.dart';
 import '../shared_test_logic/basic_crud_logic.dart';
 import '../shared_test_logic/basic_error_logic.dart';
+import '../shared_test_logic/basic_id_logic.dart';
 import '../shared_test_logic/basic_query_logic.dart';
 import '../shared_test_logic/basic_streaming_logic.dart';
 import '../shared_test_logic/data/test_object.dart';
@@ -42,6 +43,13 @@ void runBasicStreamingTests(Repository<TestObject> Function() repositoryFactory)
 
 void runBasicErrorTests(Repository<TestObject> Function() repositoryFactory) {
   runBasicErrorLogic(
+    repositoryFactory: repositoryFactory,
+    framework: _framework,
+  );
+}
+
+void runBasicIdTests(Repository<TestObject> Function() repositoryFactory) {
+  runBasicIdLogic(
     repositoryFactory: repositoryFactory,
     framework: _framework,
   );

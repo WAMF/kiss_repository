@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart' as flutter_test_pkg;
 import '../shared_test_logic/test_framework.dart';
 
-
 class FlutterTestFramework implements TestFramework {
   @override
   void group(String description, GroupFunction body) {
@@ -39,4 +38,7 @@ class FlutterTestFramework implements TestFramework {
 
   @override
   dynamic get isTrue => flutter_test_pkg.isTrue;
+
+  @override
+  dynamic isNot(matcher) => flutter_test_pkg.isNot(matcher);
 }

@@ -38,4 +38,7 @@ class DartTestFramework implements TestFramework {
 
   @override
   dynamic get isTrue => test_pkg.isTrue;
+
+  @override
+  dynamic isNot(matcher) => test_pkg.isNot(matcher);
 }
