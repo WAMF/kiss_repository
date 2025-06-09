@@ -50,7 +50,14 @@ abstract class Repository<T> {
   String? get path;
   //read operations
   Future<T> get(String id);
+
+  /// Creates a real-time stream of changes for a specific document.
+  ///
+  /// **Initial Emission**: Immediately emits existing data (BehaviorSubject-like).
+  /// **Error**: Emits [RepositoryException.notFound] if document doesn't exist (consistent with get).
+  /// **Deletion**: Stream closes when document is deleted.
   Stream<T> stream(String id);
+
   Future<List<T>> query({Query query = const AllQuery()});
   Stream<List<T>> streamQuery({Query query = const AllQuery()});
 

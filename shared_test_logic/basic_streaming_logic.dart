@@ -26,11 +26,17 @@ void runBasicStreamingLogic({
       final stream = repository.stream(createdObject.id);
       final streamFuture = stream.take(3).toList();
 
-      // Make updates
+      // Give time for the subscription to be fully established
+      await Future.delayed(Duration(milliseconds: 500));
+
+      // Make updates with delays to ensure they are processed separately
       await repository.update(
         createdObject.id,
         (current) => current.copyWith(name: 'Updated Name 1'),
       );
+
+      await Future.delayed(Duration(milliseconds: 200));
+
       await repository.update(
         createdObject.id,
         (current) => current.copyWith(name: 'Updated Name 2'),
@@ -112,11 +118,17 @@ void runBasicStreamingLogic({
       final stream2Future = stream2.take(2).toList();
       final queryStreamFuture = queryStream.take(3).toList();
 
-      // Update both objects
+      // Give time for all subscriptions to be fully established
+      await Future.delayed(Duration(milliseconds: 500));
+
+      // Update both objects with delays
       await repository.update(
         createdObject1.id,
         (current) => current.copyWith(name: 'Updated Object 1'),
       );
+
+      await Future.delayed(Duration(milliseconds: 200));
+
       await repository.update(
         createdObject2.id,
         (current) => current.copyWith(name: 'Updated Object 2'),
@@ -140,27 +152,25 @@ void runBasicStreamingLogic({
       print('✅ Handled multiple concurrent streams successfully');
     });
 
-    framework.test('should handle streaming initially non-existent document', () async {
+    framework.test('should emit error for non-existent document', () async {
       final repository = repositoryFactory();
-      final placeholderObject = TestObject.create(name: 'Placeholder', created: DateTime.now());
-      final placeholder = await repository.addAutoIdentified(
-        placeholderObject,
+
+      // Generate a properly formatted ID using the repository's interface, but don't add it
+      final autoIdentified = repository.autoIdentify(
+        TestObject.create(name: 'Dummy', created: DateTime.now()),
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
-      final testId = placeholder.id;
-      await repository.delete(testId);
+      final nonExistentId = autoIdentified.id; 
 
-      final stream = repository.stream(testId);
-      final testObject = TestObject.create(name: 'Created Later', created: DateTime.now());
-      final streamFuture = stream.take(1).toList();
+      final stream = repository.stream(nonExistentId);
 
-      await repository.add(IdentifiedObject(testId, testObject.copyWith(id: testId)));
+      // Should emit error immediately for non-existent document (consistent with get() behavior)
+      framework.expect(
+        () => stream.first,
+        framework.throwsA(framework.isA<RepositoryException>()),
+      );
 
-      final emissions = await streamFuture.timeout(Duration(seconds: 15));
-      framework.expect(emissions.length, framework.equals(1));
-      framework.expect(emissions[0].name, framework.equals('Created Later'));
-      framework.expect(emissions[0].id, framework.equals(testId));
-      print('✅ Handled streaming initially non-existent document');
+      print('✅ Emitted error for non-existent document');
     });
 
     framework.test('should stop emitting when document is deleted', () async {

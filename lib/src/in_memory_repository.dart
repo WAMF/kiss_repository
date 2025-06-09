@@ -33,12 +33,9 @@ class InMemoryRepository<T> implements Repository<T> {
   final Map<String, BehaviorSubject<T>> _itemStreamControllers = {};
   // Stream controller for query results using BehaviorSubject, seeded with initial state.
   final BehaviorSubject<List<T>> _queryStreamController =
-      BehaviorSubject<List<T>>.seeded(
-          const []); // Seed with empty list initially
+      BehaviorSubject<List<T>>.seeded(const []); // Seed with empty list initially
 
-  InMemoryRepository(
-      {required QueryBuilder<InMemoryFilterQuery<T>> queryBuilder,
-      required String path})
+  InMemoryRepository({required QueryBuilder<InMemoryFilterQuery<T>> queryBuilder, required String path})
       : _queryBuilder = queryBuilder,
         _path = path;
 
@@ -57,6 +54,10 @@ class InMemoryRepository<T> implements Repository<T> {
     return item;
   }
 
+  /// Creates a real-time stream of changes for a specific document.
+  ///
+  /// **Initial Emission**: Immediately emits existing data when subscribed (BehaviorSubject-like).
+  /// **Deletion Behavior**: InMemory closes stream on deletion.
   @override
   Stream<T> stream(String id) {
     final itemPath = _fullItemPath(id);
@@ -99,16 +100,13 @@ class InMemoryRepository<T> implements Repository<T> {
       return List<T>.unmodifiable(_items.values);
     }
     final implementationQuery = _queryBuilder.build(query);
-    return List<T>.unmodifiable(
-        _items.values.where(implementationQuery.filter));
+    return List<T>.unmodifiable(_items.values.where(implementationQuery.filter));
   }
 
   @override
   Stream<List<T>> streamQuery({Query query = const AllQuery()}) {
     final subject = BehaviorSubject<List<T>>();
-    final subscription = _queryStreamController
-        .map((_) => _getFilteredItems(query))
-        .handleError((error, stackTrace) {
+    final subscription = _queryStreamController.map((_) => _getFilteredItems(query)).handleError((error, stackTrace) {
       subject.addError(error, stackTrace);
     }).listen(
       subject.add,
@@ -240,8 +238,7 @@ class InMemoryRepository<T> implements Repository<T> {
   Future<void> deleteAll(Iterable<String> ids) async {
     await Future.delayed(Duration.zero);
     bool changed = false;
-    final List<String> actuallyDeletedIds =
-        []; // Keep track of IDs actually deleted
+    final List<String> actuallyDeletedIds = []; // Keep track of IDs actually deleted
     for (final id in ids) {
       final itemPath = _fullItemPath(id);
       final removedItem = _items.remove(itemPath);
@@ -266,16 +263,14 @@ class InMemoryRepository<T> implements Repository<T> {
   void _notifyItemUpdate(String id, T item) {
     // If a stream exists for this item, add the updated item.
     // If not, create a new BehaviorSubject seeded with the item.
-    final subject =
-        _itemStreamControllers.putIfAbsent(id, () => BehaviorSubject<T>());
+    final subject = _itemStreamControllers.putIfAbsent(id, () => BehaviorSubject<T>());
     subject.add(item);
   }
 
   void _notifyItemDelete(String id) {
-    // Notify existing stream listeners that the item is gone by adding an error.
+    // Close the stream when item is deleted (consistent with other implementations)
     final subject = _itemStreamControllers[id];
     if (subject != null) {
-      subject.addError(RepositoryException.notFound(id));
       subject.close();
       _itemStreamControllers.remove(id); // Remove after closing
     }
