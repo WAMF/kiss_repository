@@ -68,10 +68,8 @@ void runBasicCrudLogic({
         framework.throwsA(framework.isA<RepositoryException>()),
       );
 
-      framework.expect(
-        () => repository.delete('non_existent_id'),
-        framework.throwsA(framework.isA<RepositoryException>()),
-      );
+      // Delete should succeed gracefully for non-existent records
+      await repository.delete('non_existent_id');
     });
 
     framework.test('should handle multiple sequential operations', () async {

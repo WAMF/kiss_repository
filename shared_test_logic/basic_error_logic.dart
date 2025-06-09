@@ -160,5 +160,34 @@ void runBasicErrorLogic({
       );
       print('✅ Handled update operations on non-existent items correctly');
     });
+
+    framework.test('should handle graceful deletion of non-existent items', () async {
+      final repository = repositoryFactory();
+
+      // Delete operation should succeed silently for non-existent records
+      await repository.delete('completely_non_existent_id');
+
+      // deleteAll should also be graceful with mix of existent and non-existent IDs
+      final testObject = TestObject.create(name: 'Test Object', created: DateTime.now());
+      final createdObject = await repository.addAutoIdentified(
+        testObject,
+        updateObjectWithId: (object, id) => object.copyWith(id: id),
+      );
+
+      // Delete mix of existing and non-existing IDs - should succeed gracefully
+      await repository.deleteAll([
+        createdObject.id, // exists
+        'non_existent_1', // doesn't exist
+        'non_existent_2', // doesn't exist
+      ]);
+
+      // Verify the existing object was actually deleted
+      framework.expect(
+        () => repository.get(createdObject.id),
+        framework.throwsA(framework.isA<RepositoryException>()),
+      );
+
+      print('✅ Handled graceful deletion of non-existent items correctly');
+    });
   });
 }
