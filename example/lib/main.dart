@@ -20,14 +20,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
-import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
+import 'package:kiss_repository/kiss_repository.dart';
+
+import 'dependencies.dart';
 import 'models/user.dart';
-import 'repositories/query_builders/firebase_user_query_builder.dart';
+import 'repositories/repository_factory.dart';
+import 'repositories/repository_type.dart';
 import 'widgets/add_user_form.dart';
 import 'widgets/user_list_widget.dart';
 import 'widgets/search_tab.dart';
 import 'widgets/recent_users_tab.dart';
 import 'widgets/repository_info_widget.dart';
+import 'widgets/repository_selector.dart';
 
 void _log(String message) {
   // ignore: avoid_print
@@ -60,6 +64,10 @@ void main() async {
     _log('⚠️ Firebase initialization error: $e');
   }
 
+  // Initialize dependencies
+  await Dependencies.init();
+  _log('✅ Dependencies initialized');
+
   runApp(const MyApp());
 }
 
@@ -84,35 +92,61 @@ class UserManagementPage extends StatefulWidget {
 }
 
 class _UserManagementPageState extends State<UserManagementPage> with TickerProviderStateMixin {
-  late final RepositoryFirestore<User> _userRepository;
+  Repository<User>? _userRepository;
+  RepositoryType _selectedRepositoryType = RepositoryType.inMemory;
+  bool _isRepositorySwitching = false;
   late final TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _initializeRepository();
     _tabController = TabController(length: 3, vsync: this);
+    _initializeRepository(_selectedRepositoryType);
   }
 
-  void _initializeRepository() {
-    const collectionPath = 'users';
-    _userRepository = RepositoryFirestore<User>(
-      path: collectionPath,
-      toFirestore: (user) => {'id': user.id, 'name': user.name, 'email': user.email, 'createdAt': user.createdAt},
-      fromFirestore: (ref, data) => User(
-        id: ref.id,
-        name: data['name'] ?? '',
-        email: data['email'] ?? '',
-        createdAt: data['createdAt'] as DateTime,
-      ),
-      queryBuilder: FirestoreUserQueryBuilder(collectionPath),
-    );
+  Future<void> _initializeRepository(RepositoryType type) async {
+    setState(() {
+      _isRepositorySwitching = true;
+    });
+
+    try {
+      // Dispose previous repository if exists
+      _userRepository?.dispose();
+
+      final config = <String, dynamic>{};
+      if (type == RepositoryType.pocketbase) {
+        config['serverUrl'] = 'http://localhost:8090';
+      }
+
+      final repository = await RepositoryFactory.create(type, config: config);
+
+      setState(() {
+        _userRepository = repository;
+        _selectedRepositoryType = type;
+      });
+
+      _showSnackBar('Switched to ${type.displayName} repository');
+    } catch (e) {
+      _showSnackBar('Failed to initialize ${type.displayName}: $e');
+      _log('Repository initialization error: $e');
+    } finally {
+      setState(() {
+        _isRepositorySwitching = false;
+      });
+    }
+  }
+
+  void _showSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _userRepository.dispose();
+    _userRepository?.dispose();
+    RepositoryFactory.disposeAll();
     super.dispose();
   }
 
@@ -122,6 +156,16 @@ class _UserManagementPageState extends State<UserManagementPage> with TickerProv
       appBar: AppBar(
         title: const Text('KISS Repository Example'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: RepositorySelector(
+              selectedType: _selectedRepositoryType,
+              isLoading: _isRepositorySwitching,
+              onChanged: _initializeRepository,
+            ),
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
@@ -131,27 +175,29 @@ class _UserManagementPageState extends State<UserManagementPage> with TickerProv
           ],
         ),
       ),
-      body: Column(
-        children: [
-          // Add User Form
-          AddUserForm(userRepository: _userRepository),
-
-          // Tabbed Content
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
+      body: _userRepository == null
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
               children: [
-                UserListWidget(userRepository: _userRepository),
-                SearchTab(userRepository: _userRepository),
-                RecentUsersTab(userRepository: _userRepository),
+                // Add User Form
+                AddUserForm(userRepository: _userRepository!),
+
+                // Tabbed Content
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      UserListWidget(userRepository: _userRepository!),
+                      SearchTab(userRepository: _userRepository!),
+                      RecentUsersTab(userRepository: _userRepository!),
+                    ],
+                  ),
+                ),
+
+                // Repository Info
+                const RepositoryInfoWidget(),
               ],
             ),
-          ),
-
-          // Repository Info
-          const RepositoryInfoWidget(),
-        ],
-      ),
     );
   }
 }
