@@ -14,7 +14,7 @@ import 'dart_test_framework.dart';
 final _framework = DartTestFramework();
 
 void runBasicCrudTests(Repository<TestObject> Function() repositoryFactory) {
-  runBasicCrudLogic(
+  testCrudLogic(
     repositoryFactory: repositoryFactory,
     framework: _framework,
   );
