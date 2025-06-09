@@ -1,12 +1,15 @@
-import 'package:test/test.dart';
 import 'package:kiss_repository/kiss_repository.dart';
 
-import '../data/test_object.dart';
+import 'data/test_object.dart';
+import 'test_framework.dart';
 
-/// Run basic streaming integration tests on any Repository<TestObject> implementation
-void runBasicStreamingTests(Repository<TestObject> Function() repositoryFactory) {
-  group('Basic Streaming Operations', () {
-    test('should stream single document changes', () async {
+/// Shared, framework-agnostic test logic for basic streaming operations.
+void runBasicStreamingLogic({
+  required Repository<TestObject> Function() repositoryFactory,
+  required TestFramework framework,
+}) {
+  framework.group('Basic Streaming Operations', () {
+    framework.test('should stream single document changes', () async {
       final repository = repositoryFactory();
 
       // Create an object first
@@ -35,14 +38,14 @@ void runBasicStreamingTests(Repository<TestObject> Function() repositoryFactory)
 
       final emissions = await streamFuture.timeout(Duration(seconds: 15));
 
-      expect(emissions.length, 3);
-      expect(emissions[0].name, 'Initial Name');
-      expect(emissions[1].name, 'Updated Name 1');
-      expect(emissions[2].name, 'Updated Name 2');
+      framework.expect(emissions.length, framework.equals(3));
+      framework.expect(emissions[0].name, framework.equals('Initial Name'));
+      framework.expect(emissions[1].name, framework.equals('Updated Name 1'));
+      framework.expect(emissions[2].name, framework.equals('Updated Name 2'));
       print('✅ Streamed single document changes successfully');
     });
 
-    test('should stream query results changes', () async {
+    framework.test('should stream query results changes', () async {
       final repository = repositoryFactory();
 
       final stream = repository.streamQuery();
@@ -72,20 +75,20 @@ void runBasicStreamingTests(Repository<TestObject> Function() repositoryFactory)
 
       final emissions = await streamFuture.timeout(Duration(seconds: 15));
 
-      expect(emissions.length, 4);
-      expect(emissions[0].length, 0); // Initial empty state
-      expect(emissions[1].length, 1); // After first add
-      expect(emissions[1][0].name, 'Object 1');
-      expect(emissions[2].length, 2); // After second add
-      expect(emissions[3].length, 2); // After update
-      expect(
+      framework.expect(emissions.length, framework.equals(4));
+      framework.expect(emissions[0].length, framework.equals(0));
+      framework.expect(emissions[1].length, framework.equals(1));
+      framework.expect(emissions[1][0].name, framework.equals('Object 1'));
+      framework.expect(emissions[2].length, framework.equals(2));
+      framework.expect(emissions[3].length, framework.equals(2));
+      framework.expect(
         emissions[3].firstWhere((obj) => obj.id == createdObject1.id).name,
-        'Updated Object 1',
+        framework.equals('Updated Object 1'),
       );
       print('✅ Streamed query results changes successfully');
     });
 
-    test('should handle multiple concurrent streams', () async {
+    framework.test('should handle multiple concurrent streams', () async {
       final repository = repositoryFactory();
 
       // Create two objects
@@ -123,94 +126,75 @@ void runBasicStreamingTests(Repository<TestObject> Function() repositoryFactory)
       final stream2Emissions = await stream2Future.timeout(Duration(seconds: 15));
       final queryEmissions = await queryStreamFuture.timeout(Duration(seconds: 15));
 
-      expect(stream1Emissions.length, 2);
-      expect(stream1Emissions[0].name, 'Object 1');
-      expect(stream1Emissions[1].name, 'Updated Object 1');
+      framework.expect(stream1Emissions.length, framework.equals(2));
+      framework.expect(stream1Emissions[0].name, framework.equals('Object 1'));
+      framework.expect(stream1Emissions[1].name, framework.equals('Updated Object 1'));
 
-      expect(stream2Emissions.length, 2);
-      expect(stream2Emissions[0].name, 'Object 2');
-      expect(stream2Emissions[1].name, 'Updated Object 2');
+      framework.expect(stream2Emissions.length, framework.equals(2));
+      framework.expect(stream2Emissions[0].name, framework.equals('Object 2'));
+      framework.expect(stream2Emissions[1].name, framework.equals('Updated Object 2'));
 
-      expect(queryEmissions.length, 3);
-      expect(queryEmissions[0].length, 2); // Initial state with both objects
-      expect(queryEmissions[2].length, 2); // After both updates
+      framework.expect(queryEmissions.length, framework.equals(3));
+      framework.expect(queryEmissions[0].length, framework.equals(2));
+      framework.expect(queryEmissions[2].length, framework.equals(2));
       print('✅ Handled multiple concurrent streams successfully');
     });
 
-    test('should handle streaming initially non-existent document', () async {
+    framework.test('should handle streaming initially non-existent document', () async {
       final repository = repositoryFactory();
-
-      // Create a placeholder object to get a valid ID format
       final placeholderObject = TestObject.create(name: 'Placeholder', created: DateTime.now());
       final placeholder = await repository.addAutoIdentified(
         placeholderObject,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
       final testId = placeholder.id;
-
-      // Delete the placeholder so we can test streaming non-existent
       await repository.delete(testId);
 
       final stream = repository.stream(testId);
-
-      // Create the object after starting the stream
       final testObject = TestObject.create(name: 'Created Later', created: DateTime.now());
       final streamFuture = stream.take(1).toList();
 
-      // Add the object with the specific ID
       await repository.add(IdentifiedObject(testId, testObject.copyWith(id: testId)));
 
       final emissions = await streamFuture.timeout(Duration(seconds: 15));
-
-      expect(emissions.length, 1);
-      expect(emissions[0].name, 'Created Later');
-      expect(emissions[0].id, testId);
+      framework.expect(emissions.length, framework.equals(1));
+      framework.expect(emissions[0].name, framework.equals('Created Later'));
+      framework.expect(emissions[0].id, framework.equals(testId));
       print('✅ Handled streaming initially non-existent document');
     });
 
-    test('should stop emitting when document is deleted', () async {
+    framework.test('should stop emitting when document is deleted', () async {
       final repository = repositoryFactory();
-
       final testObject = TestObject.create(name: 'To Be Deleted', created: DateTime.now());
       final createdObject = await repository.addAutoIdentified(
         testObject,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
-
       final stream = repository.stream(createdObject.id);
       final emissions = <TestObject>[];
-
-      final subscription = stream.listen((obj) {
-        emissions.add(obj);
-      });
-
+      final subscription = stream.listen((obj) => emissions.add(obj));
       await Future.delayed(Duration(milliseconds: 500));
-
       await repository.delete(createdObject.id);
-
       await Future.delayed(Duration(milliseconds: 500));
-
       await subscription.cancel();
 
-      expect(emissions.length, 1);
-      expect(emissions[0].name, 'To Be Deleted');
+      framework.expect(emissions.length, framework.equals(1));
+      framework.expect(emissions[0].name, framework.equals('To Be Deleted'));
       print('✅ Stopped emitting when document was deleted');
     });
 
-    test('should emit initial data immediately on stream subscription', () async {
+    framework.test('should emit initial data immediately on stream subscription', () async {
       final repository = repositoryFactory();
-
       final testObject = TestObject.create(name: 'Immediate Object', created: DateTime.now());
       final createdObject = await repository.addAutoIdentified(
         testObject,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
-
       final stream = repository.stream(createdObject.id);
       final firstEmission = await stream.first.timeout(Duration(seconds: 10));
 
-      expect(firstEmission.name, 'Immediate Object');
-      expect(firstEmission.id, createdObject.id);
+      framework.expect(firstEmission.name, framework.equals('Immediate Object'));
+      framework.expect(firstEmission.id, framework.equals(createdObject.id));
       print('✅ Emitted initial data immediately on subscription');
     });
   });

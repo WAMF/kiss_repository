@@ -1,12 +1,15 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:kiss_repository/kiss_repository.dart';
 
 import 'data/test_object.dart';
+import 'test_framework.dart';
 
-/// Run basic batch operations integration tests on any Repository<TestObject> implementation
-void runFlutterBasicBatchTests(Repository<TestObject> Function() repositoryFactory) {
-  group('Basic Batch Operations', () {
-    test('should add multiple items with addAll', () async {
+/// Shared, framework-agnostic test logic for basic batch operations.
+void runBasicBatchLogic({
+  required Repository<TestObject> Function() repositoryFactory,
+  required TestFramework framework,
+}) {
+  framework.group('Basic Batch Operations', () {
+    framework.test('should add multiple items with addAll', () async {
       final repository = repositoryFactory();
       final objects = [
         TestObject.create(name: 'Batch Object 1', created: DateTime.now()),
@@ -22,22 +25,21 @@ void runFlutterBasicBatchTests(Repository<TestObject> Function() repositoryFacto
           .toList();
 
       final addedObjects = await repository.addAll(identifiedObjects);
-
       final addedObjectsList = addedObjects.toList();
 
-      expect(addedObjectsList.length, 3);
+      framework.expect(addedObjectsList.length, framework.equals(3));
       for (int i = 0; i < objects.length; i++) {
-        expect(addedObjectsList[i].id, identifiedObjects[i].id);
-        expect(addedObjectsList[i].name, objects[i].name);
+        framework.expect(addedObjectsList[i].id, framework.equals(identifiedObjects[i].id));
+        framework.expect(addedObjectsList[i].name, framework.equals(objects[i].name));
 
         final retrieved = await repository.get(identifiedObjects[i].id);
-        expect(retrieved.id, identifiedObjects[i].id);
-        expect(retrieved.name, objects[i].name);
+        framework.expect(retrieved.id, framework.equals(identifiedObjects[i].id));
+        framework.expect(retrieved.name, framework.equals(objects[i].name));
       }
       print('✅ Added ${addedObjectsList.length} objects with addAll');
     });
 
-    test('should update multiple items with updateAll', () async {
+    framework.test('should update multiple items with updateAll', () async {
       final repository = repositoryFactory();
       final objects = [
         TestObject.create(name: 'Update Object 1', created: DateTime.now()),
@@ -60,21 +62,20 @@ void runFlutterBasicBatchTests(Repository<TestObject> Function() repositoryFacto
       final identifiedUpdates = updatedObjectsList.map((obj) => IdentifiedObject(obj.id, obj)).toList();
 
       final updatedObjects = await repository.updateAll(identifiedUpdates);
-
       final updatedObjectsResult = updatedObjects.toList();
 
-      expect(updatedObjectsResult.length, 3);
+      framework.expect(updatedObjectsResult.length, framework.equals(3));
       for (int i = 0; i < createdObjects.length; i++) {
-        expect(updatedObjectsResult[i].id, createdObjects[i].id);
-        expect(updatedObjectsResult[i].name, '${objects[i].name} Updated');
+        framework.expect(updatedObjectsResult[i].id, framework.equals(createdObjects[i].id));
+        framework.expect(updatedObjectsResult[i].name, framework.equals('${objects[i].name} Updated'));
 
         final retrieved = await repository.get(createdObjects[i].id);
-        expect(retrieved.name, '${objects[i].name} Updated');
+        framework.expect(retrieved.name, framework.equals('${objects[i].name} Updated'));
       }
       print('✅ Updated ${updatedObjectsResult.length} objects with updateAll');
     });
 
-    test('should delete multiple items with deleteAll', () async {
+    framework.test('should delete multiple items with deleteAll', () async {
       final repository = repositoryFactory();
       final objects = [
         TestObject.create(name: 'Delete Object 1', created: DateTime.now()),
@@ -95,7 +96,7 @@ void runFlutterBasicBatchTests(Repository<TestObject> Function() repositoryFacto
       // Verify they exist first
       for (final obj in createdObjects) {
         final retrieved = await repository.get(obj.id);
-        expect(retrieved.id, obj.id);
+        framework.expect(retrieved.id, framework.equals(obj.id));
       }
 
       final deleteIds = createdObjects.map((obj) => obj.id).toList();
@@ -103,32 +104,27 @@ void runFlutterBasicBatchTests(Repository<TestObject> Function() repositoryFacto
 
       // Verify deletion
       for (final obj in createdObjects) {
-        expect(
+        framework.expect(
           () => repository.get(obj.id),
-          throwsA(isA<RepositoryException>()),
+          framework.throwsA(framework.isA<RepositoryException>()),
         );
       }
       print('✅ Deleted ${deleteIds.length} objects with deleteAll');
     });
 
-    test('should handle empty batch operations', () async {
+    framework.test('should handle empty batch operations', () async {
       final repository = repositoryFactory();
+      final emptyAddResult = await repository.addAll(<IdentifiedObject<TestObject>>[]);
+      framework.expect(emptyAddResult, framework.isEmpty);
 
-      final emptyAddResult = await repository.addAll(
-        <IdentifiedObject<TestObject>>[],
-      );
-      expect(emptyAddResult, isEmpty);
-
-      final emptyUpdateResult = await repository.updateAll(
-        <IdentifiedObject<TestObject>>[],
-      );
-      expect(emptyUpdateResult, isEmpty);
+      final emptyUpdateResult = await repository.updateAll(<IdentifiedObject<TestObject>>[]);
+      framework.expect(emptyUpdateResult, framework.isEmpty);
 
       await repository.deleteAll(<String>[]);
       print('✅ Handled empty batch operations gracefully');
     });
 
-    test('should handle batch operations with some failures', () async {
+    framework.test('should handle batch operations with some failures', () async {
       final repository = repositoryFactory();
 
       // First create an existing object
@@ -150,14 +146,14 @@ void runFlutterBasicBatchTests(Repository<TestObject> Function() repositoryFacto
 
       final identifiedBatch = batchObjects.map((obj) => IdentifiedObject(obj.id, obj)).toList();
 
-      expect(
+      framework.expect(
         () => repository.addAll(identifiedBatch),
-        throwsA(isA<RepositoryException>()),
+        framework.throwsA(framework.isA<RepositoryException>()),
       );
 
       // Verify the original object is still there
       final retrieved = await repository.get(createdExisting.id);
-      expect(retrieved.name, 'Existing Object');
+      framework.expect(retrieved.name, framework.equals('Existing Object'));
       print('✅ Handled batch operations with failures correctly');
     });
   });

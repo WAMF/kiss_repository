@@ -1,12 +1,15 @@
-import 'package:test/test.dart';
 import 'package:kiss_repository/kiss_repository.dart';
 
-import '../data/test_object.dart';
+import 'data/test_object.dart';
+import 'test_framework.dart';
 
-/// Run basic CRUD integration tests on any Repository<TestObject> implementation
-void runBasicCrudTests(Repository<TestObject> Function() repositoryFactory) {
-  group('Basic CRUD Operations', () {
-    test('should perform complete CRUD lifecycle', () async {
+/// Shared, framework-agnostic test logic for basic CRUD operations.
+void runBasicCrudLogic({
+  required Repository<TestObject> Function() repositoryFactory,
+  required TestFramework framework,
+}) {
+  framework.group('Basic CRUD Operations', () {
+    framework.test('should perform complete CRUD lifecycle', () async {
       // Create test object
       final testObject = TestObject.create(
         name: 'Test Item',
@@ -19,14 +22,14 @@ void runBasicCrudTests(Repository<TestObject> Function() repositoryFactory) {
         testObject,
         updateObjectWithId: (object, id) => object.copyWith(id: id),
       );
-      expect(createdObject.id, isNotEmpty);
-      expect(createdObject.name, equals('Test Item'));
+      framework.expect(createdObject.id, framework.isNotEmpty);
+      framework.expect(createdObject.name, framework.equals('Test Item'));
       print('✅ Created object: ${createdObject.id}');
 
       // READ: Get object by ID
       final retrievedObject = await repository.get(createdObject.id);
-      expect(retrievedObject.id, equals(createdObject.id));
-      expect(retrievedObject.name, equals('Test Item'));
+      framework.expect(retrievedObject.id, framework.equals(createdObject.id));
+      framework.expect(retrievedObject.name, framework.equals('Test Item'));
       print('✅ Retrieved object: ${retrievedObject.id}');
 
       // UPDATE: Modify object
@@ -34,8 +37,8 @@ void runBasicCrudTests(Repository<TestObject> Function() repositoryFactory) {
         createdObject.id,
         (current) => current.copyWith(name: 'Updated Item'),
       );
-      expect(savedObject.name, equals('Updated Item'));
-      expect(savedObject.id, equals(createdObject.id)); // ID should remain same
+      framework.expect(savedObject.name, framework.equals('Updated Item'));
+      framework.expect(savedObject.id, framework.equals(createdObject.id));
       print('✅ Updated object: ${savedObject.id}');
 
       // DELETE: Remove object
@@ -43,35 +46,35 @@ void runBasicCrudTests(Repository<TestObject> Function() repositoryFactory) {
       print('✅ Deleted object: ${savedObject.id}');
 
       // Verify deletion
-      expect(
+      framework.expect(
         () => repository.get(savedObject.id),
-        throwsA(isA<RepositoryException>()),
+        framework.throwsA(framework.isA<RepositoryException>()),
       );
       print('✅ Verified deletion');
     });
 
-    test('should handle non-existent records gracefully', () async {
+    framework.test('should handle non-existent records gracefully', () async {
       final repository = repositoryFactory();
-      expect(
+      framework.expect(
         () => repository.get('non_existent_id'),
-        throwsA(isA<RepositoryException>()),
+        framework.throwsA(framework.isA<RepositoryException>()),
       );
 
-      expect(
+      framework.expect(
         () => repository.update(
           'non_existent_id',
           (current) => current.copyWith(name: 'Updated'),
         ),
-        throwsA(isA<RepositoryException>()),
+        framework.throwsA(framework.isA<RepositoryException>()),
       );
 
-      expect(
+      framework.expect(
         () => repository.delete('non_existent_id'),
-        throwsA(isA<RepositoryException>()),
+        framework.throwsA(framework.isA<RepositoryException>()),
       );
     });
 
-    test('should handle multiple sequential operations', () async {
+    framework.test('should handle multiple sequential operations', () async {
       final repository = repositoryFactory();
       final objects = [
         TestObject.create(name: 'Object 1', created: DateTime.now()),
@@ -86,14 +89,14 @@ void runBasicCrudTests(Repository<TestObject> Function() repositoryFactory) {
           updateObjectWithId: (object, id) => object.copyWith(id: id),
         );
         createdObjects.add(created);
-        expect(created.id, isNotEmpty);
+        framework.expect(created.id, framework.isNotEmpty);
       }
 
       print('✅ Created ${createdObjects.length} objects');
 
       for (final obj in createdObjects) {
         final retrieved = await repository.get(obj.id);
-        expect(retrieved.id, equals(obj.id));
+        framework.expect(retrieved.id, framework.equals(obj.id));
       }
 
       print('✅ Retrieved all objects successfully');
