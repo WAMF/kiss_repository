@@ -200,8 +200,17 @@ void main() {
       final item1 = TestObject(id: '', name: 'Filter 1');
       final item2 = TestObject(id: '', name: 'Keep Me');
       final item3 = TestObject(id: '', name: 'Filter 3');
+
+      await repository.addAutoIdentified(
+        item1,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
       final addedItem2 = await repository.addAutoIdentified(
         item2,
+        updateObjectWithId: (obj, id) => obj.copyWith(id: id),
+      );
+      await repository.addAutoIdentified(
+        item3,
         updateObjectWithId: (obj, id) => obj.copyWith(id: id),
       );
 
