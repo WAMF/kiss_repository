@@ -11,6 +11,7 @@ void runBasicBatchLogic({
   framework.group('Basic Batch Operations', () {
     framework.test('should add multiple items with addAll', () async {
       final repository = repositoryFactory();
+
       final objects = [
         TestObject.create(name: 'Batch Object 1'),
         TestObject.create(name: 'Batch Object 2'),
@@ -36,11 +37,11 @@ void runBasicBatchLogic({
         framework.expect(retrieved.id, framework.equals(identifiedObjects[i].id));
         framework.expect(retrieved.name, framework.equals(objects[i].name));
       }
-      print('✅ Added ${addedObjectsList.length} objects with addAll');
     });
 
     framework.test('should update multiple items with updateAll', () async {
       final repository = repositoryFactory();
+
       final objects = [
         TestObject.create(name: 'Update Object 1'),
         TestObject.create(name: 'Update Object 2'),
@@ -72,11 +73,11 @@ void runBasicBatchLogic({
         final retrieved = await repository.get(createdObjects[i].id);
         framework.expect(retrieved.name, framework.equals('${objects[i].name} Updated'));
       }
-      print('✅ Updated ${updatedObjectsResult.length} objects with updateAll');
     });
 
     framework.test('should delete multiple items with deleteAll', () async {
       final repository = repositoryFactory();
+
       final objects = [
         TestObject.create(name: 'Delete Object 1'),
         TestObject.create(name: 'Delete Object 2'),
@@ -109,11 +110,11 @@ void runBasicBatchLogic({
           framework.throwsA(framework.isA<RepositoryException>()),
         );
       }
-      print('✅ Deleted ${deleteIds.length} objects with deleteAll');
     });
 
     framework.test('should handle empty batch operations', () async {
       final repository = repositoryFactory();
+
       final emptyAddResult = await repository.addAll(<IdentifiedObject<TestObject>>[]);
       framework.expect(emptyAddResult, framework.isEmpty);
 
@@ -121,7 +122,6 @@ void runBasicBatchLogic({
       framework.expect(emptyUpdateResult, framework.isEmpty);
 
       await repository.deleteAll(<String>[]);
-      print('✅ Handled empty batch operations gracefully');
     });
 
     framework.test('should fail entire batch atomically when any item conflicts', () async {
@@ -153,7 +153,41 @@ void runBasicBatchLogic({
       // Verify the original object is still there
       final retrieved = await repository.get(createdExisting.id);
       framework.expect(retrieved.name, framework.equals('Existing Object'));
-      print('✅ Handled batch operations with failures correctly');
+
+      // Explicitly verify that none of the new items were added (atomic failure)
+      for (final obj in batchObjects) {
+        if (obj.id != createdExisting.id && obj.id.isNotEmpty) {
+          framework.expect(
+            () => repository.get(obj.id),
+            framework.throwsA(framework.isA<RepositoryException>()),
+          );
+        }
+      }
+    });
+
+    framework.test('should fail updateAll when any item has non-existent ID', () async {
+      final repository = repositoryFactory();
+
+      // Create one existing object
+      final existingObject = await repository.addAutoIdentified(
+        TestObject.create(name: 'Existing Object'),
+        updateObjectWithId: (object, id) => object.copyWith(id: id),
+      );
+
+      // Try to update a batch that includes a non-existent ID
+      final updateBatch = [
+        IdentifiedObject(existingObject.id, existingObject.copyWith(name: 'Updated Existing')),
+        IdentifiedObject('non_existent_id', TestObject.create(name: 'Updated Non-Existent')),
+      ];
+
+      framework.expect(
+        () => repository.updateAll(updateBatch),
+        framework.throwsA(framework.isA<RepositoryException>()),
+      );
+
+      // Verify the existing object was not modified (atomic failure)
+      final retrieved = await repository.get(existingObject.id);
+      framework.expect(retrieved.name, framework.equals('Existing Object'));
     });
   });
 }
