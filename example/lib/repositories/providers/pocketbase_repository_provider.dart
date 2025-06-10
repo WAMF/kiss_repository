@@ -16,7 +16,7 @@ class PocketBaseRepositoryProvider implements RepositoryProvider<User> {
   static const String testUserEmail = 'testuser@example.com';
   static const String testUserPassword = 'testuser123';
 
-  late PocketBase pocketbaseClient;
+  late PocketBase _client;
 
   PocketBaseRepositoryProvider({this.serverUrl = 'http://localhost:8090'});
 
@@ -30,8 +30,8 @@ class PocketBaseRepositoryProvider implements RepositoryProvider<User> {
     if (credentials == null) return;
 
     try {
-      await pocketbaseClient.collection('users').authWithPassword(testUserEmail, testUserPassword);
-      print('🔐 Authenticated as test user: $testUserEmail');
+      await _client.collection('users').authWithPassword(testUserEmail, testUserPassword);
+      logger.log('🔐 Authenticated as test user: $testUserEmail');
     } catch (e) {
       throw Exception(
         'Failed to authenticate test user. Make sure user exists:\n'
@@ -45,11 +45,11 @@ class PocketBaseRepositoryProvider implements RepositoryProvider<User> {
   Future<void> initialize() async {
     if (_repository != null) return;
 
-    pocketbaseClient = PocketBase(serverUrl);
+    _client = PocketBase(serverUrl);
 
     try {
       _repository = RepositoryPocketBase<User>(
-        client: pocketbaseClient,
+        client: _client,
         collection: 'users',
         fromPocketBase: (record) => User(
           id: record.id,
