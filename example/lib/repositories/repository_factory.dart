@@ -13,18 +13,14 @@ class RepositoryFactory {
     RepositoryType.inMemory: InMemoryInitializer(),
   };
 
-  static Future<Repository<User>> create(
-    RepositoryType type, {
-    Map<String, dynamic>? config,
-  }) async {
+  static Future<Repository<User>> create(RepositoryType type) async {
     // Initialize the repository type
     final initializer = _initializers[type]!;
-    await initializer.init(config);
+    await initializer.init();
 
     // Handle PocketBase registration separately since it needs config
     if (type == RepositoryType.pocketbase) {
-      final pocketbaseInit = initializer as PocketBaseInitializer;
-      Dependencies.registerPocketBaseRepository(pocketbaseInit.serverUrl);
+      Dependencies.registerPocketBaseRepository('http://localhost:8090');
     }
 
     final identifier = _getIdentifier(type);

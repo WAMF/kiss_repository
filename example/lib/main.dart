@@ -18,55 +18,26 @@
 // To run the app:
 //   cd example && flutter run -d web
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:kiss_repository/kiss_repository.dart';
 
 import 'dependencies.dart';
 import 'models/user.dart';
 import 'repositories/repository_factory.dart';
 import 'repositories/repository_type.dart';
-import 'widgets/add_user_form.dart';
-import 'widgets/user_list_widget.dart';
+import 'widgets/all_users_tab.dart';
 import 'widgets/search_tab.dart';
 import 'widgets/recent_users_tab.dart';
-import 'widgets/repository_info_widget.dart';
 import 'widgets/repository_selector.dart';
+import 'widgets/repository_info_widget.dart';
+import 'utils/logger.dart' as logger;
 
-void _log(String message) {
-  // ignore: avoid_print
-  print(message);
-}
+
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  try {
-    // Initialize Firebase
-    await Firebase.initializeApp(
-      options: const FirebaseOptions(
-        apiKey: 'AIzaSyC_l_test_api_key_for_emulator',
-        appId: '1:123456789:web:123456789abcdef',
-        messagingSenderId: '123456789',
-        projectId: 'kiss-test-project',
-      ),
-    );
-    try {
-      firestore.FirebaseFirestore.instance.useFirestoreEmulator('0.0.0.0', 8080);
-      _log('🔥 Using Firestore emulator at 0.0.0.0:8080');
-    } catch (e) {
-      _log('⚠️ Could not connect to Firestore emulator: $e');
-      _log('💡 Make sure to run: firebase emulators:start --only firestore');
-    }
-
-    _log('✅ Firebase initialized successfully');
-  } catch (e) {
-    _log('⚠️ Firebase initialization error: $e');
-  }
-
-  // Initialize dependencies
   await Dependencies.init();
-  _log('✅ Dependencies initialized');
 
   runApp(const MyApp());
 }
@@ -113,12 +84,7 @@ class _UserManagementPageState extends State<UserManagementPage> with TickerProv
       // Dispose previous repository if exists
       _userRepository?.dispose();
 
-      final config = <String, dynamic>{};
-      if (type == RepositoryType.pocketbase) {
-        config['serverUrl'] = 'http://localhost:8090';
-      }
-
-      final repository = await RepositoryFactory.create(type, config: config);
+      final repository = await RepositoryFactory.create(type);
 
       setState(() {
         _userRepository = repository;
@@ -128,7 +94,7 @@ class _UserManagementPageState extends State<UserManagementPage> with TickerProv
       _showSnackBar('Switched to ${type.displayName} repository');
     } catch (e) {
       _showSnackBar('Failed to initialize ${type.displayName}: $e');
-      _log('Repository initialization error: $e');
+      logger.log('Repository initialization error: $e');
     } finally {
       setState(() {
         _isRepositorySwitching = false;
@@ -179,25 +145,25 @@ class _UserManagementPageState extends State<UserManagementPage> with TickerProv
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Add User Form
-                AddUserForm(userRepository: _userRepository!),
-
-                // Tabbed Content
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      UserListWidget(userRepository: _userRepository!),
+                      AllUsersTab(userRepository: _userRepository!),
                       SearchTab(userRepository: _userRepository!),
                       RecentUsersTab(userRepository: _userRepository!),
                     ],
                   ),
                 ),
-
-                // Repository Info
-                const RepositoryInfoWidget(),
               ],
             ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => RepositoryInfoWidget.show(context),
+        tooltip: 'Repository Features',
+        child: const Icon(Icons.info),
+      ),
     );
   }
 }
+
+
