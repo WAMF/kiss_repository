@@ -1,6 +1,6 @@
 import 'package:kiss_dependencies/kiss_dependencies.dart';
 
-import 'models/user.dart';
+import 'models/product_model.dart';
 import 'repositories/providers/firebase_repository_provider.dart';
 import 'repositories/providers/inmemory_repository_provider.dart';
 import 'repositories/providers/pocketbase_repository_provider.dart';
@@ -12,19 +12,19 @@ class Dependencies {
   static Future<void> init() async {
     if (_isInitialized) return;
 
-    registerLazy<RepositoryProvider<User>>(
+    registerLazy<RepositoryProvider<ProductModel>>(
       () => FirebaseRepositoryProvider(),
-      identifier: 'firebase_user_provider',
+      identifier: 'firebase_product_provider',
     );
 
-    registerLazy<RepositoryProvider<User>>(
+    registerLazy<RepositoryProvider<ProductModel>>(
       () => InMemoryRepositoryProvider(),
-      identifier: 'inmemory_user_provider',
+      identifier: 'inmemory_product_provider',
     );
 
-    registerLazy<RepositoryProvider<User>>(
+    registerLazy<RepositoryProvider<ProductModel>>(
       () => PocketBaseRepositoryProvider(),
-      identifier: 'pocketbase_user_provider',
+      identifier: 'pocketbase_product_provider',
     );
 
     _isInitialized = true;

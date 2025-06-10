@@ -9,16 +9,17 @@ class RepositoryInfoWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text('• Auto-generated Firestore IDs'),
+        const Text('• Auto-generated repository IDs'),
         const Text('• Real-time streaming updates'),
         const Text('• CRUD operations (Create, Read, Update, Delete)'),
         const Text('• Custom Query system with QueryBuilder'),
-        const Text('• Search queries (QueryByName, QueryByMaxAge)'),
+        const Text('• Search queries (QueryByName, QueryByPriceGreaterThan/LessThan)'),
+        const Text('• Date-based queries (QueryByCreatedAfter/Before)'),
         const Text('• Error handling'),
-        const Text('• Firebase emulator integration'),
+        const Text('• Multiple backend support (Firebase, PocketBase, InMemory)'),
         const SizedBox(height: 16),
         Text(
-          'Collection: users | Query System: UserQueryBuilder',
+          'Collection: products | Query System: ProductModelQueryBuilder',
           style: TextStyle(
             fontSize: 12,
             color: Theme.of(context).colorScheme.onSurfaceVariant,

@@ -3,14 +3,14 @@ import 'package:kiss_pocketbase_repository/kiss_pocketbase_repository.dart';
 // ignore: depend_on_referenced_packages
 import 'package:pocketbase/pocketbase.dart';
 
-import '../../models/user.dart';
+import '../../models/product_model.dart';
 import '../../utils/logger.dart' as logger;
 import '../../widgets/auth_dialog.dart';
-import '../query_builders/pocketbase_user_query_builder.dart';
+import '../query_builders/pocketbase_product_query_builder.dart';
 import '../repository_provider.dart';
 
-class PocketBaseRepositoryProvider implements RepositoryProvider<User> {
-  Repository<User>? _repository;
+class PocketBaseRepositoryProvider implements RepositoryProvider<ProductModel> {
+  Repository<ProductModel>? _repository;
   final String serverUrl;
 
   static const String testUserEmail = 'testuser@example.com';
@@ -48,20 +48,22 @@ class PocketBaseRepositoryProvider implements RepositoryProvider<User> {
     _client = PocketBase(serverUrl);
 
     try {
-      _repository = RepositoryPocketBase<User>(
+      _repository = RepositoryPocketBase<ProductModel>(
         client: _client,
-        collection: 'users',
-        fromPocketBase: (record) => User(
+        collection: 'products',
+        fromPocketBase: (record) => ProductModel(
           id: record.id,
           name: record.data['name'] ?? '',
-          email: record.data['email'] ?? '',
-          createdAt: DateTime.parse(record.get<String>('created')),
+          price: (record.data['price'] ?? 0.0).toDouble(),
+          description: record.data['description'] ?? '',
+          created: DateTime.parse(record.get<String>('created')),
         ),
-        toPocketBase: (user) => {
-          'name': user.name,
-          'email': user.email,
+        toPocketBase: (product) => {
+          'name': product.name,
+          'price': product.price,
+          'description': product.description,
         },
-        queryBuilder: PocketBaseUserQueryBuilder(),
+        queryBuilder: PocketBaseProductQueryBuilder(),
       );
 
       logger.log('✅ PocketBase repository initialized for $serverUrl');
@@ -72,7 +74,7 @@ class PocketBaseRepositoryProvider implements RepositoryProvider<User> {
   }
 
   @override
-  Repository<User> get repository {
+  Repository<ProductModel> get repository {
     if (_repository == null) {
       throw StateError('Repository not initialized. Call initialize() first.');
     }

@@ -22,12 +22,12 @@ import 'package:kiss_dependencies/kiss_dependencies.dart';
 import 'package:kiss_repository/kiss_repository.dart';
 
 import 'dependencies.dart';
-import 'models/user.dart';
+import 'models/product_model.dart';
 import 'repositories/repository_provider.dart';
 import 'repositories/repository_type.dart';
-import 'widgets/all_users_tab.dart';
+import 'widgets/all_products_tab.dart';
 import 'widgets/search_tab.dart';
-import 'widgets/recent_users_tab.dart';
+import 'widgets/recent_products_tab.dart';
 import 'widgets/repository_selector.dart';
 import 'widgets/repository_info_widget.dart';
 import 'utils/logger.dart' as logger;
@@ -48,20 +48,20 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'KISS Repository Example',
       theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange), useMaterial3: true),
-      home: const UserManagementPage(),
+      home: const ProductManagementPage(),
     );
   }
 }
 
-class UserManagementPage extends StatefulWidget {
-  const UserManagementPage({super.key});
+class ProductManagementPage extends StatefulWidget {
+  const ProductManagementPage({super.key});
 
   @override
-  State<UserManagementPage> createState() => _UserManagementPageState();
+  State<ProductManagementPage> createState() => _ProductManagementPageState();
 }
 
-class _UserManagementPageState extends State<UserManagementPage> with TickerProviderStateMixin {
-  Repository<User>? _userRepository;
+class _ProductManagementPageState extends State<ProductManagementPage> with TickerProviderStateMixin {
+  Repository<ProductModel>? _productRepository;
   RepositoryType _selectedRepositoryType = RepositoryType.inMemory;
   bool _isRepositorySwitching = false;
   late final TabController _tabController;
@@ -80,14 +80,14 @@ class _UserManagementPageState extends State<UserManagementPage> with TickerProv
 
     try {
       final providerId = _getProviderId(type);
-      final provider = resolve<RepositoryProvider<User>>(identifier: providerId);
+      final provider = resolve<RepositoryProvider<ProductModel>>(identifier: providerId);
 
       await provider.initialize();
       // ignore: use_build_context_synchronously
       await provider.authenticate(context);
 
       setState(() {
-        _userRepository = provider.repository;
+        _productRepository = provider.repository;
         _selectedRepositoryType = type;
       });
 
@@ -105,11 +105,11 @@ class _UserManagementPageState extends State<UserManagementPage> with TickerProv
   String _getProviderId(RepositoryType type) {
     switch (type) {
       case RepositoryType.firebase:
-        return 'firebase_user_provider';
+        return 'firebase_product_provider';
       case RepositoryType.pocketbase:
-        return 'pocketbase_user_provider';
+        return 'pocketbase_product_provider';
       case RepositoryType.inMemory:
-        return 'inmemory_user_provider';
+        return 'inmemory_product_provider';
     }
   }
 
@@ -144,13 +144,13 @@ class _UserManagementPageState extends State<UserManagementPage> with TickerProv
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(icon: Icon(Icons.list), text: 'All Users'),
+            Tab(icon: Icon(Icons.list), text: 'All Products'),
             Tab(icon: Icon(Icons.search), text: 'Search'),
             Tab(icon: Icon(Icons.schedule), text: 'Recent'),
           ],
         ),
       ),
-      body: _userRepository == null
+      body: _productRepository == null
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
@@ -158,9 +158,9 @@ class _UserManagementPageState extends State<UserManagementPage> with TickerProv
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      AllUsersTab(userRepository: _userRepository!),
-                      SearchTab(userRepository: _userRepository!),
-                      RecentUsersTab(userRepository: _userRepository!),
+                      AllProductsTab(productRepository: _productRepository!),
+                      SearchTab(productRepository: _productRepository!),
+                      RecentProductsTab(productRepository: _productRepository!),
                     ],
                   ),
                 ),

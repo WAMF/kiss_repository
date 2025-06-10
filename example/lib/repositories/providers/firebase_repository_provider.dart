@@ -2,13 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
 
-import '../../models/user.dart';
+import '../../models/product_model.dart';
 import '../../utils/logger.dart' as logger;
-import '../query_builders/firebase_user_query_builder.dart';
+import '../query_builders/firebase_product_query_builder.dart';
 import '../repository_provider.dart';
 
-class FirebaseRepositoryProvider extends RepositoryProvider<User> {
-  Repository<User>? _repository;
+class FirebaseRepositoryProvider extends RepositoryProvider<ProductModel> {
+  Repository<ProductModel>? _repository;
   bool _firebaseInitialized = false;
 
   @override
@@ -42,26 +42,28 @@ class FirebaseRepositoryProvider extends RepositoryProvider<User> {
       }
     }
 
-    _repository = RepositoryFirestore<User>(
-      path: 'users',
-      toFirestore: (user) => {
-        'id': user.id,
-        'name': user.name,
-        'email': user.email,
-        'createdAt': user.createdAt,
+    _repository = RepositoryFirestore<ProductModel>(
+      path: 'products',
+      toFirestore: (product) => {
+        'id': product.id,
+        'name': product.name,
+        'price': product.price,
+        'description': product.description,
+        'created': product.created,
       },
-      fromFirestore: (ref, data) => User(
+      fromFirestore: (ref, data) => ProductModel(
         id: ref.id,
         name: data['name'] ?? '',
-        email: data['email'] ?? '',
-        createdAt: data['createdAt'] as DateTime,
+        price: (data['price'] ?? 0.0).toDouble(),
+        description: data['description'] ?? '',
+        created: data['created'] as DateTime,
       ),
-      queryBuilder: FirestoreUserQueryBuilder('users'),
+      queryBuilder: FirestoreProductQueryBuilder('products'),
     );
   }
 
   @override
-  Repository<User> get repository {
+  Repository<ProductModel> get repository {
     if (_repository == null) {
       throw StateError('Repository not initialized. Call initialize() first.');
     }

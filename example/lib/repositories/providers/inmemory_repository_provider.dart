@@ -1,23 +1,23 @@
 import 'package:kiss_repository/kiss_repository.dart';
 import '../repository_provider.dart';
-import '../query_builders/inmemory_user_query_builder.dart';
-import '../../models/user.dart';
+import '../query_builders/inmemory_product_query_builder.dart';
+import '../../models/product_model.dart';
 
-class InMemoryRepositoryProvider extends RepositoryProvider<User> {
-  Repository<User>? _repository;
+class InMemoryRepositoryProvider extends RepositoryProvider<ProductModel> {
+  Repository<ProductModel>? _repository;
 
   @override
   Future<void> initialize() async {
     if (_repository != null) return;
 
-    _repository = InMemoryRepository<User>(
-      queryBuilder: InMemoryUserQueryBuilder(),
-      path: 'users',
+    _repository = InMemoryRepository<ProductModel>(
+      queryBuilder: InMemoryProductQueryBuilder(),
+      path: 'products',
     );
   }
 
   @override
-  Repository<User> get repository {
+  Repository<ProductModel> get repository {
     if (_repository == null) {
       throw StateError('Repository not initialized. Call initialize() first.');
     }
