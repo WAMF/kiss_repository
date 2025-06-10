@@ -27,7 +27,6 @@ import 'repositories/repository_provider.dart';
 import 'repositories/repository_type.dart';
 import 'widgets/all_products_tab.dart';
 import 'widgets/search_tab.dart';
-import 'widgets/recent_products_tab.dart';
 import 'widgets/repository_selector.dart';
 import 'widgets/repository_info_widget.dart';
 import 'utils/logger.dart' as logger;
@@ -69,7 +68,7 @@ class _ProductManagementPageState extends State<ProductManagementPage> with Tick
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _initializeRepository(_selectedRepositoryType);
   }
 
@@ -146,7 +145,6 @@ class _ProductManagementPageState extends State<ProductManagementPage> with Tick
           tabs: const [
             Tab(icon: Icon(Icons.list), text: 'All Products'),
             Tab(icon: Icon(Icons.search), text: 'Search'),
-            Tab(icon: Icon(Icons.schedule), text: 'Recent'),
           ],
         ),
       ),
@@ -160,7 +158,6 @@ class _ProductManagementPageState extends State<ProductManagementPage> with Tick
                     children: [
                       AllProductsTab(productRepository: _productRepository!),
                       SearchTab(productRepository: _productRepository!),
-                      RecentProductsTab(productRepository: _productRepository!),
                     ],
                   ),
                 ),
