@@ -22,7 +22,6 @@ import 'package:kiss_repository/kiss_repository.dart';
 
 import 'dependencies.dart';
 import 'models/user.dart';
-import 'repositories/repository_factory.dart';
 import 'repositories/repository_type.dart';
 import 'widgets/all_users_tab.dart';
 import 'widgets/search_tab.dart';
@@ -30,9 +29,6 @@ import 'widgets/recent_users_tab.dart';
 import 'widgets/repository_selector.dart';
 import 'widgets/repository_info_widget.dart';
 import 'utils/logger.dart' as logger;
-
-
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -81,13 +77,13 @@ class _UserManagementPageState extends State<UserManagementPage> with TickerProv
     });
 
     try {
-      // Dispose previous repository if exists
-      _userRepository?.dispose();
+      final providerId = _getProviderId(type);
+      final provider = Dependencies.getProvider(providerId);
 
-      final repository = await RepositoryFactory.create(type);
+      await provider.initialize();
 
       setState(() {
-        _userRepository = repository;
+        _userRepository = provider.repository;
         _selectedRepositoryType = type;
       });
 
@@ -102,6 +98,17 @@ class _UserManagementPageState extends State<UserManagementPage> with TickerProv
     }
   }
 
+  String _getProviderId(RepositoryType type) {
+    switch (type) {
+      case RepositoryType.firebase:
+        return 'firebase_user_provider';
+      case RepositoryType.pocketbase:
+        return 'pocketbase_user_provider';
+      case RepositoryType.inMemory:
+        return 'inmemory_user_provider';
+    }
+  }
+
   void _showSnackBar(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
@@ -111,8 +118,6 @@ class _UserManagementPageState extends State<UserManagementPage> with TickerProv
   @override
   void dispose() {
     _tabController.dispose();
-    _userRepository?.dispose();
-    RepositoryFactory.disposeAll();
     super.dispose();
   }
 
@@ -165,5 +170,3 @@ class _UserManagementPageState extends State<UserManagementPage> with TickerProv
     );
   }
 }
-
-
