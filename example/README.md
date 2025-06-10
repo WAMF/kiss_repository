@@ -124,6 +124,33 @@ final searchResults = repository.streamQuery(
 );
 ```
 
+## Search Limitations by Repository Type
+
+Different repository implementations have varying search capabilities:
+
+### 🔥 Firebase (Firestore)
+- **❌ Case-sensitive only** - "Fire" finds "Firebase 1" but "fire" does not
+- **❌ Prefix search only** - "Firebase" finds "Firebase 1" but "base" does not
+- **✅ Price/date range queries work perfectly**
+- **Limitation**: Firestore queries are case-sensitive and only support prefix matching for text fields
+
+### 💾 PocketBase  
+- **✅ Case-insensitive** - "fire" finds "Firebase 1"
+- **✅ Contains search** - "base" finds "Firebase 1" 
+- **✅ All query types work well**
+- **Limitation**: None significant for typical use cases
+
+### 🧠 InMemory
+- **✅ Case-insensitive** - "fire" finds "Firebase 1"
+- **✅ Contains search** - "base" finds "Firebase 1"
+- **✅ All query types work perfectly**
+- **Limitation**: Data not persisted between app restarts
+
+### Recommendation
+- Use **InMemory** for development and testing
+- Use **PocketBase** for full-featured text search in production  
+- Use **Firebase** when you need Firebase ecosystem integration (accept search limitations)
+
 ## Prerequisites
 
 1. **Flutter SDK** (3.8.0+)

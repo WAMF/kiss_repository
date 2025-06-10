@@ -14,10 +14,9 @@ class FirestoreProductQueryBuilder implements QueryBuilder<firestore.Query<Map<S
     if (query is QueryByName) {
       // Search for products by name (case-insensitive prefix search)
       if (query.searchTerm.isNotEmpty) {
-        final searchTermLower = query.searchTerm.toLowerCase();
         return baseQuery
-            .where('name', isGreaterThanOrEqualTo: searchTermLower)
-            .where('name', isLessThan: '${searchTermLower}z')
+            .where('name', isGreaterThanOrEqualTo: query.searchTerm)
+            .where('name', isLessThan: '${query.searchTerm}\uf8ff')
             .orderBy('name');
       }
     }
