@@ -18,10 +18,12 @@
 // To run the app:
 //   cd example && flutter run -d web
 import 'package:flutter/material.dart';
+import 'package:kiss_dependencies/kiss_dependencies.dart';
 import 'package:kiss_repository/kiss_repository.dart';
 
 import 'dependencies.dart';
 import 'models/user.dart';
+import 'repositories/repository_provider.dart';
 import 'repositories/repository_type.dart';
 import 'widgets/all_users_tab.dart';
 import 'widgets/search_tab.dart';
@@ -78,9 +80,11 @@ class _UserManagementPageState extends State<UserManagementPage> with TickerProv
 
     try {
       final providerId = _getProviderId(type);
-      final provider = Dependencies.getProvider(providerId);
+      final provider = resolve<RepositoryProvider<User>>(identifier: providerId);
 
       await provider.initialize();
+      // ignore: use_build_context_synchronously
+      await provider.authenticate(context);
 
       setState(() {
         _userRepository = provider.repository;

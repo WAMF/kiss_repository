@@ -1,32 +1,61 @@
+import 'package:flutter/material.dart';
 import 'package:kiss_pocketbase_repository/kiss_pocketbase_repository.dart';
 // ignore: depend_on_referenced_packages
 import 'package:pocketbase/pocketbase.dart';
-import '../repository_provider.dart';
-import '../query_builders/pocketbase_user_query_builder.dart';
+
 import '../../models/user.dart';
 import '../../utils/logger.dart' as logger;
+import '../../widgets/auth_dialog.dart';
+import '../query_builders/pocketbase_user_query_builder.dart';
+import '../repository_provider.dart';
 
-class PocketbaseRepositoryProvider implements RepositoryProvider<User> {
+class PocketBaseRepositoryProvider implements RepositoryProvider<User> {
   Repository<User>? _repository;
   final String serverUrl;
 
-  PocketbaseRepositoryProvider({this.serverUrl = 'http://localhost:8090'});
+  static const String testUserEmail = 'testuser@example.com';
+  static const String testUserPassword = 'testuser123';
+
+  late PocketBase pocketbaseClient;
+
+  PocketBaseRepositoryProvider({this.serverUrl = 'http://localhost:8090'});
+
+  @override
+  Future<void> authenticate(BuildContext context) async {
+    final credentials = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (context) => AuthDialog(email: testUserEmail, password: testUserPassword),
+    );
+
+    if (credentials == null) return;
+
+    try {
+      await pocketbaseClient.collection('users').authWithPassword(testUserEmail, testUserPassword);
+      print('🔐 Authenticated as test user: $testUserEmail');
+    } catch (e) {
+      throw Exception(
+        'Failed to authenticate test user. Make sure user exists:\n'
+        'Email: $testUserEmail\n'
+        'Error: $e',
+      );
+    }
+  }
 
   @override
   Future<void> initialize() async {
     if (_repository != null) return;
 
-    try {
-      final client = PocketBase(serverUrl);
+    pocketbaseClient = PocketBase(serverUrl);
 
+    try {
       _repository = RepositoryPocketBase<User>(
-        client: client,
+        client: pocketbaseClient,
         collection: 'users',
         fromPocketBase: (record) => User(
           id: record.id,
           name: record.data['name'] ?? '',
           email: record.data['email'] ?? '',
-          createdAt: DateTime.parse(record.created),
+          createdAt: DateTime.parse(record.get<String>('created')),
         ),
         toPocketBase: (user) => {
           'name': user.name,

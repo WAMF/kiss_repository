@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
 import '../models/user.dart';
+import '../utils/logger.dart' as logger;
 
 class AddUserForm extends StatefulWidget {
   final Repository<User> userRepository;
@@ -48,6 +49,7 @@ class _AddUserFormState extends State<AddUserForm> {
       _showSnackBar('User added successfully!');
       widget.onUserAdded?.call();
     } catch (e) {
+      logger.log('Error adding user: $e');
       _showSnackBar('Error adding user: $e');
     } finally {
       setState(() => _isLoading = false);

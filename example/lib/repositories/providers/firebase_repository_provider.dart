@@ -1,12 +1,13 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
+import 'package:firebase_core/firebase_core.dart';
 import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
-import '../repository_provider.dart';
-import '../query_builders/firebase_user_query_builder.dart';
+
 import '../../models/user.dart';
 import '../../utils/logger.dart' as logger;
+import '../query_builders/firebase_user_query_builder.dart';
+import '../repository_provider.dart';
 
-class FirebaseRepositoryProvider implements RepositoryProvider<User> {
+class FirebaseRepositoryProvider extends RepositoryProvider<User> {
   Repository<User>? _repository;
   bool _firebaseInitialized = false;
 

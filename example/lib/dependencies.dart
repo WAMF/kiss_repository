@@ -23,14 +23,10 @@ class Dependencies {
     );
 
     registerLazy<RepositoryProvider<User>>(
-      () => PocketbaseRepositoryProvider(),
+      () => PocketBaseRepositoryProvider(),
       identifier: 'pocketbase_user_provider',
     );
 
     _isInitialized = true;
-  }
-
-  static RepositoryProvider<User> getProvider(String identifier) {
-    return resolve<RepositoryProvider<User>>(identifier: identifier);
   }
 }
