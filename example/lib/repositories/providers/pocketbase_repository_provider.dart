@@ -1,16 +1,16 @@
-import 'package:kiss_repository/kiss_repository.dart';
 import 'package:kiss_pocketbase_repository/kiss_pocketbase_repository.dart';
+// ignore: depend_on_referenced_packages
 import 'package:pocketbase/pocketbase.dart';
 import '../repository_provider.dart';
 import '../query_builders/pocketbase_user_query_builder.dart';
 import '../../models/user.dart';
 import '../../utils/logger.dart' as logger;
 
-class PocketBaseUserRepositoryProvider implements RepositoryProvider<User> {
+class PocketbaseRepositoryProvider implements RepositoryProvider<User> {
   Repository<User>? _repository;
   final String serverUrl;
 
-  PocketBaseUserRepositoryProvider({this.serverUrl = 'http://localhost:8090'});
+  PocketbaseRepositoryProvider({this.serverUrl = 'http://localhost:8090'});
 
   @override
   Future<void> initialize() async {
