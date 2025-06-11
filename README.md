@@ -160,6 +160,26 @@ repository.streamQuery(query: UserQuery(role: 'admin')).listen((admins) {
 6. **Always call `dispose()` when done with a repository to clean up resources**
 7. **Handle ID generation outside the repository - the interface expects you to provide IDs**
 
+## Development Pattern for New Repository Implementations
+
+When creating a new repository implementation, follow this standardized pattern:
+
+### 1. Environment Setup
+Set up a testing environment (emulator, local instance, Docker) with configuration files and setup scripts.
+
+### 2. Test-Driven Development
+Write your implementation using TDD with the shared test logic in `shared_test_logic/`:
+- Use `integration_test/` for Flutter packages with `flutter_test`
+- Use `test/integration/` for pure Dart packages with `test`
+- Create a test framework adapter extending `TestFramework`
+- Implement progressively: ID Management → CRUD → Batch → Query → Streaming
+
+### 3. Example Integration
+Build a working Flutter app in `example/` demonstrating CRUD, queries, streaming, and batch operations with comprehensive integration tests.
+
+### 4. Documentation
+Add your implementation to the comparison table in `example/README.md`, documenting capabilities, limitations, and unique features compared to existing implementations.
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
