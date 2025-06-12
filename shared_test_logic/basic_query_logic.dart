@@ -1,7 +1,7 @@
 import 'package:kiss_repository/kiss_repository.dart';
 
-import 'data/queries.dart';
 import 'data/product_model.dart';
+import 'data/queries.dart';
 import 'test_framework.dart';
 
 /// Shared, framework-agnostic test logic for basic query operations.
@@ -13,29 +13,19 @@ void runQueryTests({
     framework.test('should query all items with AllQuery (default)', () async {
       final repository = repositoryFactory();
 
-      // Add test data with specific timing to control creation order
-      final products = [
-        ProductModel.create(name: 'First Product', price: 9.99),
-        ProductModel.create(name: 'Second Product', price: 9.99),
-        ProductModel.create(name: 'Third Product', price: 9.99),
-      ];
-
-      final createdObjects = <ProductModel>[];
-      for (final obj in products) {
-        final created = await repository.addAutoIdentified(
-          obj,
+      for (int i = 0; i < 3; i++) {
+        final product = ProductModel.create(name: 'Product $i', price: 9.99);
+        await repository.addAutoIdentified(
+          product,
           updateObjectWithId: (object, id) => object.copyWith(id: id),
         );
-        createdObjects.add(created);
-        await Future.delayed(Duration(milliseconds: 10)); // Ensure different timestamps
+        await Future.delayed(Duration(milliseconds: 10));
       }
 
       final allObjects = await repository.query();
       framework.expect(allObjects.length, framework.equals(3));
-
-      // Should be sorted by creation date descending (newest first)
-      framework.expect(allObjects.first.name, framework.equals('Third Product'));
-      framework.expect(allObjects.last.name, framework.equals('First Product'));
+      framework.expect(allObjects.first.name, framework.equals('Product 2'));
+      framework.expect(allObjects.last.name, framework.equals('Product 0'));
       print('✅ Queried all objects with default AllQuery');
     });
 

@@ -38,9 +38,7 @@ class ProductModel {
   }
 
   @override
-  String toString() {
-    return 'ProductModel(id: $id, name: $name, price: \$${price.toStringAsFixed(2)}, description: $description, created: $created)';
-  }
+  String toString() => 'ProductModel(id: $id, name: $name, price: $price, description: $description, created: $created)';
 
   @override
   bool operator ==(Object other) {
