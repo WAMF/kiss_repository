@@ -82,8 +82,6 @@ class _ProductManagementPageState extends State<ProductManagementPage> with Tick
       final provider = resolve<RepositoryProvider<ProductModel>>(identifier: providerId);
 
       await provider.initialize();
-      // ignore: use_build_context_synchronously
-      await provider.authenticate(context);
 
       setState(() {
         _productRepository = provider.repository;

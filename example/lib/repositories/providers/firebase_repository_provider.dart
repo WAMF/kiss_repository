@@ -7,7 +7,7 @@ import '../../utils/logger.dart' as logger;
 import '../query_builders/firebase_product_query_builder.dart';
 import '../repository_provider.dart';
 
-class FirebaseRepositoryProvider extends RepositoryProvider<ProductModel> {
+class FirebaseRepositoryProvider implements RepositoryProvider<ProductModel> {
   Repository<ProductModel>? _repository;
   bool _firebaseInitialized = false;
 

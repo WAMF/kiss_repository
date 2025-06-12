@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kiss_repository/kiss_repository.dart';
 import '../models/product_model.dart';
 import '../utils/logger.dart' as logger;
+import 'package:flutter/services.dart';
 
 class AddProductForm extends StatefulWidget {
   final Repository<ProductModel> productRepository;
@@ -97,7 +98,8 @@ class _AddProductFormState extends State<AddProductForm> {
                 child: TextField(
                   controller: _priceController,
                   decoration: const InputDecoration(labelText: 'Price', border: OutlineInputBorder(), prefixText: '\$'),
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 ),
               ),
             ],

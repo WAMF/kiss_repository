@@ -3,7 +3,7 @@ import '../repository_provider.dart';
 import '../query_builders/inmemory_product_query_builder.dart';
 import '../../models/product_model.dart';
 
-class InMemoryRepositoryProvider extends RepositoryProvider<ProductModel> {
+class InMemoryRepositoryProvider implements RepositoryProvider<ProductModel> {
   Repository<ProductModel>? _repository;
 
   @override

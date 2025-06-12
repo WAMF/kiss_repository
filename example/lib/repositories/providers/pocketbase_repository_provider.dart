@@ -1,11 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:kiss_pocketbase_repository/kiss_pocketbase_repository.dart';
 // ignore: depend_on_referenced_packages
 import 'package:pocketbase/pocketbase.dart';
 
 import '../../models/product_model.dart';
 import '../../utils/logger.dart' as logger;
-import '../../widgets/auth_dialog.dart';
 import '../query_builders/pocketbase_product_query_builder.dart';
 import '../repository_provider.dart';
 
@@ -21,31 +19,12 @@ class PocketBaseRepositoryProvider implements RepositoryProvider<ProductModel> {
   PocketBaseRepositoryProvider({this.serverUrl = 'http://localhost:8090'});
 
   @override
-  Future<void> authenticate(BuildContext context) async {
-    final credentials = await showDialog<Map<String, String>>(
-      context: context,
-      builder: (context) => AuthDialog(email: testUserEmail, password: testUserPassword),
-    );
-
-    if (credentials == null) return;
-
-    try {
-      await _client.collection('users').authWithPassword(testUserEmail, testUserPassword);
-      logger.log('🔐 Authenticated as test user: $testUserEmail');
-    } catch (e) {
-      throw Exception(
-        'Failed to authenticate test user. Make sure user exists:\n'
-        'Email: $testUserEmail\n'
-        'Error: $e',
-      );
-    }
-  }
-
-  @override
   Future<void> initialize() async {
     if (_repository != null) return;
 
     _client = PocketBase(serverUrl);
+
+    _authenticate();
 
     try {
       _repository = RepositoryPocketBase<ProductModel>(
@@ -71,6 +50,12 @@ class PocketBaseRepositoryProvider implements RepositoryProvider<ProductModel> {
       logger.log('⚠️ PocketBase initialization error: $e');
       rethrow;
     }
+  }
+
+  /// PocketBase requires per-user authentication to access the database
+  Future<void> _authenticate() async {
+    await _client.collection('users').authWithPassword(testUserEmail, testUserPassword);
+    logger.log('🔐 Authenticated as test user: $testUserEmail');
   }
 
   @override
