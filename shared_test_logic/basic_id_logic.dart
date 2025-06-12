@@ -11,7 +11,7 @@ void runIdTests({
   framework.group('ID Management & Auto-Generation', () {
     framework.test('should auto-generate IDs with autoIdentify', () async {
       final repository = repositoryFactory();
-      final productModel = ProductModel.create(name: 'Auto User', price: 9.99);
+      final productModel = ProductModel.create(name: 'Auto Product', price: 9.99);
 
       final autoIdentified = repository.autoIdentify(
         productModel,
@@ -19,14 +19,14 @@ void runIdTests({
       );
 
       framework.expect(autoIdentified.id, framework.isNotEmpty);
-      framework.expect(autoIdentified.object.name, framework.equals('Auto User'));
+      framework.expect(autoIdentified.object.name, framework.equals('Auto Product'));
       framework.expect(autoIdentified.object.id, framework.equals(autoIdentified.id));
       print('✅ Auto-generated ID with autoIdentify');
     });
 
     framework.test('should add items with auto-generated IDs using addAutoIdentified', () async {
       final repository = repositoryFactory();
-      final productModel = ProductModel.create(name: 'Auto Added User', price: 9.99);
+      final productModel = ProductModel.create(name: 'Auto Added Product', price: 9.99);
 
       final addedObject = await repository.addAutoIdentified(
         productModel,
@@ -34,11 +34,11 @@ void runIdTests({
       );
 
       framework.expect(addedObject.id, framework.isNotEmpty);
-      framework.expect(addedObject.name, framework.equals('Auto Added User'));
+      framework.expect(addedObject.name, framework.equals('Auto Added Product'));
 
       final retrieved = await repository.get(addedObject.id);
       framework.expect(retrieved.id, framework.equals(addedObject.id));
-      framework.expect(retrieved.name, framework.equals('Auto Added User'));
+      framework.expect(retrieved.name, framework.equals('Auto Added Product'));
       print('✅ Added item with auto-generated ID using addAutoIdentified');
     });
 
@@ -46,7 +46,7 @@ void runIdTests({
       final repository = repositoryFactory();
       final productModels = List.generate(
         5,
-        (i) => ProductModel.create(name: 'User $i', price: 9.99),
+        (i) => ProductModel.create(name: 'Product $i', price: 9.99),
       );
 
       final addedObjects = <ProductModel>[];
@@ -78,7 +78,7 @@ void runIdTests({
 
     framework.test('should work with autoIdentify then manual add', () async {
       final repository = repositoryFactory();
-      final productModel = ProductModel.create(name: 'Manual Add User', price: 9.99);
+      final productModel = ProductModel.create(name: 'Manual Add Product', price: 9.99);
 
       final autoIdentified = repository.autoIdentify(
         productModel,
@@ -88,17 +88,17 @@ void runIdTests({
       final addedObject = await repository.add(autoIdentified);
 
       framework.expect(addedObject.id, framework.isNotEmpty);
-      framework.expect(addedObject.name, framework.equals('Manual Add User'));
+      framework.expect(addedObject.name, framework.equals('Manual Add Product'));
 
       final retrieved = await repository.get(addedObject.id);
       framework.expect(retrieved.id, framework.equals(addedObject.id));
-      framework.expect(retrieved.name, framework.equals('Manual Add User'));
+      framework.expect(retrieved.name, framework.equals('Manual Add Product'));
       print('✅ AutoIdentify + manual add workflow worked');
     });
 
     framework.test('should handle autoIdentify without updateObjectWithId (default behavior)', () async {
       final repository = repositoryFactory();
-      final productModel = ProductModel.create(name: 'Default User', price: 9.99).copyWith(id: 'original-id');
+      final productModel = ProductModel.create(name: 'Default Product', price: 9.99).copyWith(id: 'original-id');
 
       final autoIdentified = repository.autoIdentify(productModel);
 
@@ -107,7 +107,7 @@ void runIdTests({
 
       // Object should retain original ID since no updateObjectWithId was provided
       framework.expect(autoIdentified.object.id, framework.equals('original-id'));
-      framework.expect(autoIdentified.object.name, framework.equals('Default User'));
+      framework.expect(autoIdentified.object.name, framework.equals('Default Product'));
       print('✅ AutoIdentify default behavior handled correctly');
     });
 
@@ -144,6 +144,21 @@ void runIdTests({
         framework.expect(retrieved.name, framework.equals(productModels[i].name));
       }
       print('✅ AutoIdentify worked in batch operations');
+    });
+
+    framework.test('should handle addAutoIdentified without updateObjectWithId', () async {
+      final repository = repositoryFactory();
+      final productModel = ProductModel.create(name: 'ProductX', price: 9.99);
+
+      final addedObject = await repository.addAutoIdentified(productModel);
+
+      // The returned object should have the generated ID populated
+      framework.expect(addedObject.id, framework.isNotEmpty);
+      framework.expect(addedObject.name, framework.equals('ProductX'));
+
+      // Should be retrievable with the same ID
+      final retrieved = await repository.get(addedObject.id);
+      framework.expect(retrieved.id, framework.equals(addedObject.id));
     });
   });
 }
