@@ -169,15 +169,15 @@ class _SearchTabState extends State<SearchTab> {
     final maxPrice = _maxPriceController.text.trim();
 
     if (searchTerm.isNotEmpty) {
-      return 'Search Results for "${searchTerm}"';
+      return 'Search Results for "$searchTerm"';
     }
 
     if (minPrice.isNotEmpty) {
-      return 'Products over \$${minPrice}';
+      return 'Products over \$$minPrice';
     }
 
     if (maxPrice.isNotEmpty) {
-      return 'Products under \$${maxPrice}';
+      return 'Products under \$$maxPrice';
     }
 
     return 'All Products';

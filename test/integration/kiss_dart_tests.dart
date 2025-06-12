@@ -1,4 +1,4 @@
-library kiss_dart_tests;
+library;
 
 import 'package:kiss_repository/kiss_repository.dart';
 

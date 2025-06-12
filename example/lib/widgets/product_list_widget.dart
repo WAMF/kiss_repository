@@ -71,12 +71,14 @@ class ProductListWidget extends StatelessWidget {
       final newDescription = result['description']!;
 
       if (newName.isEmpty || priceText.isEmpty) {
+        // ignore: use_build_context_synchronously
         _showSnackBar(context, 'Name and price are required');
         return;
       }
 
       final newPrice = double.tryParse(priceText);
       if (newPrice == null || newPrice < 0) {
+        // ignore: use_build_context_synchronously
         _showSnackBar(context, 'Please enter a valid price');
         return;
       }
