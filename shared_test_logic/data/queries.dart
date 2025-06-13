@@ -1,5 +1,7 @@
 import 'package:kiss_repository/kiss_repository.dart';
 
+/// Query classes for ProductModel
+
 class QueryByName extends Query {
   final String namePrefix;
   const QueryByName(this.namePrefix);
@@ -23,31 +25,4 @@ class QueryByPriceGreaterThan extends Query {
 class QueryByPriceLessThan extends Query {
   final double price;
   const QueryByPriceLessThan(this.price);
-}
-
-class ProductModelQueryBuilder implements QueryBuilder<String> {
-  @override
-  String build(Query query) {
-    if (query is QueryByName) {
-      return 'name ~ "${query.namePrefix}"';
-    }
-
-    if (query is QueryByCreatedAfter) {
-      return 'created >= "${query.date.toIso8601String()}"';
-    }
-
-    if (query is QueryByCreatedBefore) {
-      return 'created <= "${query.date.toIso8601String()}"';
-    }
-
-    if (query is QueryByPriceGreaterThan) {
-      return 'price > ${query.price}';
-    }
-
-    if (query is QueryByPriceLessThan) {
-      return 'price < ${query.price}';
-    }
-
-    return '';
-  }
 }
