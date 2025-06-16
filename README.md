@@ -54,7 +54,7 @@ final repository = InMemoryRepository<MyObject>(
 
 // Use it
 final item = MyObject(name: 'test');
-final added = await repository.add(IdentifedObject('id1', item));
+final added = await repository.add(IdentifiedObject('id1', item));
 final retrieved = await repository.get('id1');
 
 // Don't forget to dispose when done
@@ -72,19 +72,19 @@ The repository interface provides the following operations:
 - `streamQuery({Query query})`: Stream updates for multiple items
 
 #### Single Operations
-- `add(IdentifedObject<T> item)`: Add a new item with a specific ID
+- `add(IdentifiedObject<T> item)`: Add a new item with a specific ID
 - `update(String id, T Function(T current) updater)`: Update an existing item
 - `delete(String id)`: Delete an item by ID
 
 #### Batch Operations
-- `addAll(Iterable<IdentifedObject<T>> items)`: Add multiple items
-- `updateAll(Iterable<IdentifedObject<T>> items)`: Update multiple items
+- `addAll(Iterable<IdentifiedObject<T>> items)`: Add multiple items
+- `updateAll(Iterable<IdentifiedObject<T>> items)`: Update multiple items
 - `deleteAll(Iterable<String> ids)`: Delete multiple items
 
 #### Resource Management
 - `dispose()`: Clean up streams and resources
 
-**Important Note:** ID generation is explicitly out of scope for this interface. You must provide IDs when adding items using `IdentifedObject<T>`.
+**Important Note:** ID generation is explicitly out of scope for this interface. You must provide IDs when adding items using `IdentifiedObject<T>`.
 
 ### Error Handling
 
@@ -178,12 +178,47 @@ Write your implementation using TDD with the shared test logic in `shared_test_l
 Build a working Flutter app in `example/` demonstrating CRUD, queries, streaming, and batch operations with comprehensive integration tests.
 
 ### 4. Documentation
-Add your implementation to the comparison table in `example/README.md`, documenting capabilities, limitations, and unique features compared to existing implementations.
+Add your implementation to the comparison table below, documenting capabilities, limitations, and unique features compared to existing implementations.
 
-## Contributing
+## 🔄 Available Implementations
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+| Implementation | Platform | Use Case |
+|----------------|----------|----------|
+| **[Firebase Firestore](https://github.com/WAMF/kiss_firebase_repository)** | Flutter | Real-time apps with offline support |
+| **[PocketBase](https://github.com/WAMF/kiss_pocketbase_repository)** | Pure Dart | Self-hosted apps |
+| **[AWS DynamoDB](https://github.com/WAMF/kiss_dynamodb_repository)** | Pure Dart | Server-side/enterprise apps |
 
-## License
+## 🔄 Implementation Comparison
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+| Feature | Firebase | PocketBase | DynamoDB |
+|---------|----------|------------|----------|
+| **Platform Support** | Flutter only | Pure Dart | Pure Dart |
+| **Real-time Streaming** | Native | Native | Not implemented |
+| **Offline Support** | Built-in | Online only | Online only |
+| **Hosting** | Google Cloud | Self-hosted | AWS only |
+| **Authentication** | Firebase Auth | Built-in auth collections | AWS IAM/Cognito |
+| **Query Capabilities** | | | |
+| - Case-insensitive search | No | Yes (via ~ operator) | Yes |
+| - Contains matching | Prefix only | Yes | Yes |
+| **Batch Operations** | Partial | Yes | Yes |
+| - Atomic batch updates | Partial | Yes | Yes |
+| **Auto-scaling** | Automatic | Manual | Automatic |
+| **Cost Model** | Pay-per-use | Self-hosted | Pay-per-use |
+| **Local Development** | Yes | Yes | Partial (No Streaming)|
+
+## 📁 Example Application
+
+A centralized example application is included that demonstrates how to switch between different repository implementations:
+
+- **[Centralized Example](https://github.com/WAMF/kiss_repository/tree/main/example)** - Flutter app that allows switching between Firebase, PocketBase, and DynamoDB implementations
+
+## 🤝 Contributing
+
+1. Make changes to the appropriate repository
+2. Run tests for that specific repository
+3. Update documentation if needed
+4. Submit pull request to the specific repository
+
+## 📄 License
+
+MIT License - see individual repositories for details.
