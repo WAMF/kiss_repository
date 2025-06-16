@@ -71,10 +71,20 @@ abstract class Repository<T> {
   Future<void> deleteAll(Iterable<String> ids);
 
   //auto identify
+  
+  /// Generates a unique ID for an object and returns an [IdentifiedObject].
+  ///
+  /// If [updateObjectWithId] is provided, the object is updated with the generated ID.
+  /// If not provided, the object remains unchanged.
   IdentifiedObject<T> autoIdentify(
     T object, {
     T Function(T object, String id)? updateObjectWithId,
   });
+
+  /// Convenience method that combines [autoIdentify] and [add].
+  ///
+  /// If [updateObjectWithId] is provided, the object is updated with the generated ID.
+  /// If not provided, the object remains unchanged.
   Future<T> addAutoIdentified(
     T object, {
     T Function(T object, String id)? updateObjectWithId,

@@ -24,8 +24,13 @@ void runQueryTests({
 
       final allObjects = await repository.query();
       framework.expect(allObjects.length, framework.equals(3));
-      framework.expect(allObjects.first.name, framework.equals('Product 2'));
-      framework.expect(allObjects.last.name, framework.equals('Product 0'));
+
+      // Check that all expected items are present (order not guaranteed)
+      final names = allObjects.map((obj) => obj.name).toSet();
+      framework.expect(names.length, framework.equals(3));
+      framework.expect(names, framework.contains('Product 0'));
+      framework.expect(names, framework.contains('Product 1'));
+      framework.expect(names, framework.contains('Product 2'));
       print('✅ Queried all objects with default AllQuery');
     });
 
