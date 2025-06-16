@@ -140,7 +140,8 @@ class InMemoryRepository<T> implements Repository<T> {
     T object, {
     T Function(T object, String id)? updateObjectWithId,
   }) async {
-    return add(autoIdentify(object, updateObjectWithId: updateObjectWithId));
+    final identified = autoIdentify(object, updateObjectWithId: updateObjectWithId);
+    return add(identified);
   }
 
   @override
@@ -176,11 +177,11 @@ class InMemoryRepository<T> implements Repository<T> {
     await Future.delayed(Duration.zero);
     final itemPath = _fullItemPath(id);
     final removedItem = _items.remove(itemPath);
-    if (removedItem == null) {
-      throw RepositoryException.notFound(id);
+    if (removedItem != null) {
+      _notifyItemDelete(id);
+      _notifyQueryUpdate();
     }
-    _notifyItemDelete(id);
-    _notifyQueryUpdate();
+    // Silently succeed if item doesn't exist (consistent with other implementations)
   }
 
   // --- Batch Operations ---
