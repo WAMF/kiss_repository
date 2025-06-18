@@ -1,7 +1,6 @@
 import 'package:kiss_repository/kiss_repository.dart';
+import 'package:kiss_repository/test.dart';
 import 'package:test/test.dart' as test_pkg;
-
-import 'package:kiss_repository/testing.dart';
 
 class RepositoryTester {
   final String implementationName;

@@ -1,4 +1,4 @@
-import 'package:kiss_repository/testing.dart';
+import 'package:kiss_repository/test.dart';
 
 typedef TestFunction = Future<void> Function();
 typedef GroupFunction = void Function();

@@ -193,7 +193,7 @@ class MyRepositoryFactory implements RepositoryFactory {
 
 2. **Run Shared Tests**: Use the factory with `RepositoryTester`:
 ```dart
-import 'package:kiss_repository/testing.dart';
+import 'package:kiss_repository/test.dart';
 
 void main() {
   final factory = MyRepositoryFactory();

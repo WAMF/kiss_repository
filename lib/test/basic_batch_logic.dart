@@ -1,5 +1,5 @@
 import 'package:kiss_repository/kiss_repository.dart';
-import 'package:kiss_repository/testing.dart';
+import 'package:kiss_repository/test.dart';
 
 /// Shared, framework-agnostic test logic for basic batch operations.
 void runBatchTests({

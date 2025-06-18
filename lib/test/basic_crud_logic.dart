@@ -1,6 +1,5 @@
 import 'package:kiss_repository/kiss_repository.dart';
-import 'package:kiss_repository/testing/data/product_model.dart';
-import 'package:kiss_repository/testing/framework/test_framework.dart';
+import 'package:kiss_repository/test.dart';
 
 void runCrudTests({
   required Repository<ProductModel> Function() repositoryFactory,

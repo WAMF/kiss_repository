@@ -1,5 +1,5 @@
 import 'package:test/test.dart' as test_pkg;
-import 'package:kiss_repository/testing.dart';
+import 'package:kiss_repository/test.dart';
 
 class DartTestFramework implements TestFramework {
   @override
