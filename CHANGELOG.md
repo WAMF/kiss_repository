@@ -1,7 +1,7 @@
 ## 0.11.0
 
-- Moved test logic to `/lib/testing/` for publishable packages
-- Added universal factory pattern with `RepositoryFactory` and `RepositoryTester`
+- Added comprehensive integration tests for InMemoryRepository using factory pattern
+- Extracted shared test logic to dedicated [kiss_repository_tests](https://github.com/WAMF/kiss_repository_tests) package
 
 ## 0.10.0
 
