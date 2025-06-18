@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:kiss_repository/kiss_repository.dart';
-import 'package:kiss_repository/test.dart';
+import '../../../../kiss_repository_tests/lib/test.dart';
 
 import 'inmemory_query_builder.dart';
 

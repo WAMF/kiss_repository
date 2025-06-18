@@ -1,5 +1,5 @@
 import 'package:kiss_repository/kiss_repository.dart';
-import 'package:kiss_repository/test.dart';
+import '../../../../kiss_repository_tests/lib/test.dart';
 
 /// Query builder for InMemory implementation
 class InMemoryProductQueryBuilder implements QueryBuilder<InMemoryFilterQuery<ProductModel>> {
