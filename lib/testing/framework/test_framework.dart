@@ -1,12 +1,17 @@
-// Defines a generic interface for test frameworks (like package:test or flutter_test)
-// to allow test logic to be shared.
+import 'package:kiss_repository/testing.dart';
 
 typedef TestFunction = Future<void> Function();
 typedef GroupFunction = void Function();
 
+typedef RepositoryCleanup = void Function();
+
+typedef RepositoryFactoryProvider = RepositoryFactory Function();
+
 abstract class TestFramework {
   void group(String description, GroupFunction body);
   void test(String description, TestFunction body);
+  void setUp(TestFunction body);
+  void tearDown(TestFunction body);
   void expect(dynamic actual, dynamic matcher);
 
   // Matchers used in shared tests

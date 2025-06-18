@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart' as flutter_test_pkg;
-import '../shared_test_logic/test_framework.dart';
+import 'package:kiss_repository/testing.dart';
 
 class FlutterTestFramework implements TestFramework {
   @override
@@ -10,6 +10,16 @@ class FlutterTestFramework implements TestFramework {
   @override
   void test(String description, TestFunction body) {
     return flutter_test_pkg.test(description, body);
+  }
+
+  @override
+  void setUp(TestFunction body) {
+    return flutter_test_pkg.setUp(body);
+  }
+
+  @override
+  void tearDown(TestFunction body) {
+    return flutter_test_pkg.tearDown(body);
   }
 
   @override

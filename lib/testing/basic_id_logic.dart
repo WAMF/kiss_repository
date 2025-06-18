@@ -1,7 +1,5 @@
 import 'package:kiss_repository/kiss_repository.dart';
-
-import 'data/product_model.dart';
-import 'test_framework.dart';
+import 'package:kiss_repository/testing.dart';
 
 /// Shared, framework-agnostic test logic for ID management functionality.
 void runIdTests({
