@@ -168,11 +168,44 @@ When creating a new repository implementation, follow this standardized pattern:
 Set up a testing environment (emulator, local instance, Docker) with configuration files and setup scripts.
 
 ### 2. Test-Driven Development
-Write your implementation using TDD with the shared test logic in `shared_test_logic/`:
-- Use `integration_test/` for Flutter packages with `flutter_test`
-- Use `test/integration/` for pure Dart packages with `test`
-- Create a test framework adapter extending `TestFramework`
-- Implement progressively: ID Management → CRUD → Batch → Query → Streaming
+Write your implementation using TDD with the universal factory pattern:
+
+#### Factory Pattern Implementation
+1. **Create a Factory**: Implement `RepositoryFactory` interface from `package:kiss_repository/testing.dart`:
+```dart
+class MyRepositoryFactory implements RepositoryFactory {
+  @override
+  Repository<ProductModel> createRepository() {
+    // Return your repository instance
+  }
+
+  @override
+  Future<void> cleanup() async {
+    // Clean up test data between tests
+  }
+
+  @override
+  void dispose() {
+    // Final cleanup
+  }
+}
+```
+
+2. **Run Shared Tests**: Use the factory with `RepositoryTester`:
+```dart
+import 'package:kiss_repository/testing.dart';
+
+void main() {
+  final factory = MyRepositoryFactory();
+  final tester = RepositoryTester('MyImplementation', factory, () {});
+  tester.run();
+}
+```
+
+3. **Test Organization**:
+   - Use `test/integration/` for pure Dart packages
+   - Use `integration_test/` for Flutter packages
+   - Implement progressively: ID Management → CRUD → Batch → Query → Streaming
 
 ### 3. Example Integration
 Build a working Flutter app in `example/` demonstrating CRUD, queries, streaming, and batch operations with comprehensive integration tests.
@@ -188,6 +221,8 @@ Add your implementation to the comparison table below, documenting capabilities,
 | **[PocketBase](https://github.com/WAMF/kiss_pocketbase_repository)** | Pure Dart | Self-hosted apps |
 | **[AWS DynamoDB](https://github.com/WAMF/kiss_dynamodb_repository)** | Pure Dart | Server-side/enterprise apps |
 
+
+**ID Generation:** Firebase/InMemory return what you specify, while PocketBase/DynamoDB always return the complete database record.
 
 ## 📁 Example Application
 
