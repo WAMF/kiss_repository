@@ -49,6 +49,8 @@ class RepositoryException implements Exception {
 abstract class Repository<T> {
   String? get path;
   //read operations
+  /// Returns the item with the given ID.
+  /// Throws [RepositoryException.notFound] if the item does not exist.
   Future<T> get(String id);
 
   /// Creates a real-time stream of changes for a specific document.
@@ -56,6 +58,7 @@ abstract class Repository<T> {
   /// **Initial Emission**: Immediately emits existing data (BehaviorSubject-like).
   /// **Error**: Emits [RepositoryException.notFound] if document doesn't exist (consistent with get).
   /// **Deletion**: Stream closes when document is deleted.
+  /// **Error**: Emits [RepositoryException.notFound] if document doesn't exist (consistent with get).
   Stream<T> stream(String id);
 
   Future<List<T>> query({Query query = const AllQuery()});

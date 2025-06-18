@@ -188,23 +188,6 @@ Add your implementation to the comparison table below, documenting capabilities,
 | **[PocketBase](https://github.com/WAMF/kiss_pocketbase_repository)** | Pure Dart | Self-hosted apps |
 | **[AWS DynamoDB](https://github.com/WAMF/kiss_dynamodb_repository)** | Pure Dart | Server-side/enterprise apps |
 
-## 🔄 Implementation Comparison
-
-| Feature | Firebase | PocketBase | DynamoDB |
-|---------|----------|------------|----------|
-| **Platform Support** | Flutter only | Pure Dart | Pure Dart |
-| **Real-time Streaming** | Native | Native | Not implemented |
-| **Offline Support** | Built-in | Online only | Online only |
-| **Hosting** | Google Cloud | Self-hosted | AWS only |
-| **Authentication** | Firebase Auth | Built-in auth collections | AWS IAM/Cognito |
-| **Query Capabilities** | | | |
-| - Case-insensitive search | No | Yes (via ~ operator) | Yes |
-| - Contains matching | Prefix only | Yes | Yes |
-| **Batch Operations** | Partial | Yes | Yes |
-| - Atomic batch updates | Partial | Yes | Yes |
-| **Auto-scaling** | Automatic | Manual | Automatic |
-| **Cost Model** | Pay-per-use | Self-hosted | Pay-per-use |
-| **Local Development** | Yes | Yes | Partial (No Streaming)|
 
 ## 📁 Example Application
 

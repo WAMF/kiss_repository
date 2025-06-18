@@ -1,8 +1,7 @@
 import 'dart:async';
 
+import 'package:kiss_repository/src/repository.dart';
 import 'package:rxdart/rxdart.dart';
-
-import 'repository.dart';
 
 class InMemoryFilterQuery<T> extends Query {
   const InMemoryFilterQuery(this.filter);
@@ -31,6 +30,7 @@ class InMemoryRepository<T> implements Repository<T> {
 
   // Stream controller for individual item updates using BehaviorSubject.
   final Map<String, BehaviorSubject<T>> _itemStreamControllers = {};
+
   // Stream controller for query results using BehaviorSubject, seeded with initial state.
   final BehaviorSubject<List<T>> _queryStreamController =
       BehaviorSubject<List<T>>.seeded(const []); // Seed with empty list initially

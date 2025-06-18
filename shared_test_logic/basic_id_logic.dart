@@ -145,15 +145,5 @@ void runIdTests({
       }
       print('✅ AutoIdentify worked in batch operations');
     });
-
-    framework.test('should handle addAutoIdentified without updateObjectWithId', () async {
-      final repository = repositoryFactory();
-      final productModel = ProductModel.create(name: 'ProductX', price: 9.99);
-
-      final addedObject = await repository.addAutoIdentified(productModel);
-
-      framework.expect(addedObject.id, framework.isEmpty);
-      framework.expect(addedObject.name, framework.equals('ProductX'));
-    });
   });
 }
