@@ -106,11 +106,10 @@ class InMemoryRepository<T> implements Repository<T> {
   @override
   Stream<List<T>> streamQuery({Query query = const AllQuery()}) {
     final subject = BehaviorSubject<List<T>>();
-    final subscription = _queryStreamController.map((_) => _getFilteredItems(query)).handleError((error, stackTrace) {
-      subject.addError(error, stackTrace);
-    }).listen(
-      subject.add,
-    );
+    final subscription = _queryStreamController
+        .map((_) => _getFilteredItems(query))
+        .handleError(subject.addError)
+        .listen(subject.add);
 
     subject.onCancel = () {
       subscription.cancel();
