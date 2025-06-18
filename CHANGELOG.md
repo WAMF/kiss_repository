@@ -1,3 +1,8 @@
+## 0.11.0
+
+- Moved test logic to `/lib/testing/` for publishable packages
+- Added universal factory pattern with `RepositoryFactory` and `RepositoryTester`
+
 ## 0.10.0
 
 - Throw exception when getting item with non existent ID
