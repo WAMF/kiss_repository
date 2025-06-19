@@ -5,7 +5,7 @@ import 'package:kiss_repository_tests/kiss_repository_tests.dart';
 
 import 'inmemory_query_builder.dart';
 
-class InMemoryRepositoryFactory implements RepositoryFactory {
+class InMemoryRepositoryFactory implements RepositoryFactory<ProductModel> {
   Repository<ProductModel>? _repository;
   static bool _initialized = false;
 
