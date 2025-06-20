@@ -7,21 +7,9 @@ import 'inmemory_query_builder.dart';
 
 class InMemoryRepositoryFactory implements RepositoryFactory<ProductModel> {
   Repository<ProductModel>? _repository;
-  static bool _initialized = false;
-
-  static Future<void> initialize() async {
-    if (_initialized) return;
-
-    print('✅ InMemory repository initialized');
-    _initialized = true;
-  }
 
   @override
-  Repository<ProductModel> createRepository() {
-    if (!_initialized) {
-      throw StateError('Factory not initialized. Call initialize() first.');
-    }
-
+  Future<Repository<ProductModel>> createRepository() async {
     _repository = InMemoryRepository<ProductModel>(
       queryBuilder: InMemoryProductQueryBuilder(),
       path: 'products',
@@ -57,6 +45,5 @@ class InMemoryRepositoryFactory implements RepositoryFactory<ProductModel> {
   void dispose() {
     _repository?.dispose();
     _repository = null;
-    _initialized = false;
   }
 }
