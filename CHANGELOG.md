@@ -1,3 +1,8 @@
+## 0.11.0
+
+- Added comprehensive integration tests for InMemoryRepository using factory pattern
+- Extracted shared test logic to dedicated [kiss_repository_tests](https://github.com/WAMF/kiss_repository_tests) package
+
 ## 0.10.0
 
 - Throw exception when getting item with non existent ID

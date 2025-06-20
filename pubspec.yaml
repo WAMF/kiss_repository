@@ -1,6 +1,6 @@
 name: kiss_repository
 description: A simple generic repository interface
-version: 0.10.0
+version: 0.11.0
 repository: https://github.com/WAMF/kiss_repository
 
 environment:
@@ -10,9 +10,7 @@ dependencies:
   rxdart: ^0.28.0
 
 dev_dependencies:
-  flutter:
-    sdk: flutter
-  flutter_test:
-    sdk: flutter
-  lints: ^5.0.0
+  very_good_analysis: ^6.0.0
   test: ^1.20.0
+  kiss_repository_tests:
+    path: ../kiss_repository_tests
