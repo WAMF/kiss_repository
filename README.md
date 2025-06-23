@@ -171,12 +171,15 @@ Set up a testing environment (emulator, local instance, Docker) with configurati
 Write your implementation using TDD with the universal factory pattern:
 
 #### Factory Pattern Implementation
-1. **Create a Factory**: Implement `RepositoryFactory` interface from `package:kiss_repository/testing.dart`:
+1. **Create a Factory**: Implement `RepositoryFactory` interface from `package:kiss_repository_tests`:
 ```dart
-class MyRepositoryFactory implements RepositoryFactory {
+import 'package:kiss_repository_tests/kiss_repository_tests.dart';
+
+class MyRepositoryFactory implements RepositoryFactory<ProductModel> {
   @override
-  Repository<ProductModel> createRepository() {
+  Future<Repository<ProductModel>> createRepository() async {
     // Return your repository instance
+    return MyRepository<ProductModel>(/* configuration */);
   }
 
   @override
@@ -191,14 +194,16 @@ class MyRepositoryFactory implements RepositoryFactory {
 }
 ```
 
-2. **Run Shared Tests**: Use the factory with `RepositoryTester`:
+2. **Run Shared Tests**: Use the factory with `runRepositoryTests`:
 ```dart
-import 'package:kiss_repository/test.dart';
+import 'package:kiss_repository_tests/kiss_repository_tests.dart';
 
 void main() {
-  final factory = MyRepositoryFactory();
-  final tester = RepositoryTester('MyImplementation', factory, () {});
-  tester.run();
+  runRepositoryTests(
+    implementationName: 'MyImplementation',
+    factoryProvider: () => MyRepositoryFactory(),
+    cleanup: () {},
+  );
 }
 ```
 
