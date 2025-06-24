@@ -46,7 +46,7 @@ class InMemoryRepository<T> implements Repository<T> {
 
   @override
   Future<T> get(String id) async {
-    await Future.delayed(Duration.zero); // Simulate async operation
+    await Future<void>.delayed(Duration.zero); // Simulate async operation
     final item = _items[_fullItemPath(id)];
     if (item == null) {
       throw RepositoryException.notFound(id);
@@ -145,7 +145,7 @@ class InMemoryRepository<T> implements Repository<T> {
 
   @override
   Future<T> add(IdentifiedObject<T> item) async {
-    await Future.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
     final itemPath = _fullItemPath(item.id);
     if (_items.containsKey(itemPath)) {
       throw RepositoryException.alreadyExists(item.id);
@@ -158,7 +158,7 @@ class InMemoryRepository<T> implements Repository<T> {
 
   @override
   Future<T> update(String id, T Function(T current) updater) async {
-    await Future.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
     final itemPath = _fullItemPath(id);
     final currentItem = _items[itemPath];
     if (currentItem == null) {
@@ -173,7 +173,7 @@ class InMemoryRepository<T> implements Repository<T> {
 
   @override
   Future<void> delete(String id) async {
-    await Future.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
     final itemPath = _fullItemPath(id);
     final removedItem = _items.remove(itemPath);
     if (removedItem != null) {
@@ -187,7 +187,7 @@ class InMemoryRepository<T> implements Repository<T> {
 
   @override
   Future<Iterable<T>> addAll(Iterable<IdentifiedObject<T>> items) async {
-    await Future.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
     final addedItems = <T>[];
     final ids = <String>[];
     for (final item in items) {
@@ -209,7 +209,7 @@ class InMemoryRepository<T> implements Repository<T> {
 
   @override
   Future<Iterable<T>> updateAll(Iterable<IdentifiedObject<T>> items) async {
-    await Future.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
     final updatedItems = <T>[];
     final Map<String, T> updates = {};
 
@@ -236,7 +236,7 @@ class InMemoryRepository<T> implements Repository<T> {
 
   @override
   Future<void> deleteAll(Iterable<String> ids) async {
-    await Future.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
     bool changed = false;
     final List<String> actuallyDeletedIds = []; // Keep track of IDs actually deleted
     for (final id in ids) {
