@@ -48,4 +48,4 @@ install() {
     echo "npm not found. Install Node.js: brew install node"
     return 1
   fi
-} 
+}

@@ -49,4 +49,4 @@ install() {
   else
     return 0
   fi
-} 
+}
