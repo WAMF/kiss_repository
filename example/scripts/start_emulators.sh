@@ -1,18 +1,35 @@
 #!/bin/bash
 
+# Central Emulator Manager
+# Dynamically discovers and manages emulators from the emulators/ directory
+
 # Colors
 RED='\033[0;31m' GREEN='\033[0;32m' YELLOW='\033[1;33m'
 BLUE='\033[0;34m' PURPLE='\033[0;35m' CYAN='\033[0;36m' NC='\033[0m'
 
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-declare -a RUNNING_PIDS=() RUNNING_SERVICES=()
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+EMULATORS_DIR="$SCRIPT_DIR/emulators"
+
+declare -a RUNNING_PIDS=() RUNNING_SERVICES=() AVAILABLE_EMULATORS=()
 
 trap cleanup SIGINT SIGTERM
 
 cleanup() {
   echo -e "\n${YELLOW}🛑 Stopping emulators...${NC}"
+  
+  # Kill tracked processes
   for pid in "${RUNNING_PIDS[@]}"; do kill "$pid" 2>/dev/null; done
-  docker stop dynamodb-local >/dev/null 2>&1 && docker rm dynamodb-local >/dev/null 2>&1
+  
+  # Stop all running services
+  for service in "${RUNNING_SERVICES[@]}"; do
+    local emulator_file="$EMULATORS_DIR/${service,,}.sh"
+    if [ -f "$emulator_file" ]; then
+      source "$emulator_file"
+      stop
+    fi
+  done
+  
   echo -e "${GREEN}✅ All emulators stopped${NC}"; exit 0
 }
 
@@ -26,135 +43,173 @@ print() {
   esac
 }
 
-check_port() { lsof -i :"$1" >/dev/null 2>&1; }
-
-check_cmd() { command -v "$1" >/dev/null 2>&1; }
-
-start_firebase() {
-  print info "🔥 Starting Firebase..."
-  check_port 4000 && { print success "Firebase already running"; RUNNING_SERVICES+=("Firebase"); return; }
-
-  cd "$PROJECT_DIR"/.. || cd "$PROJECT_DIR"
-  [ ! -f firebase.json ] && cat > firebase.json <<EOF
-{
-  "projects": {"default": "demo-kiss-example"},
-  "emulators": {
-    "auth": {"port": 9099},
-    "firestore": {"port": 8080},
-    "ui": {"enabled": true, "port": 4000}
-  }
-}
-EOF
-
-  firebase emulators:start --only auth,firestore --project demo-kiss-example >"$PROJECT_DIR/firebase.log" 2>&1 &
-  local pid=$!
-  RUNNING_PIDS+=($pid) 
-  RUNNING_SERVICES+=("Firebase")
-  
-  # Wait a bit for startup, then check if it's running
-  sleep 3
-  if kill -0 "$pid" 2>/dev/null; then
-    print success "Firebase started (http://localhost:4000)"
-    # Show logs in background
-    tail -f "$PROJECT_DIR/firebase.log" &
-    RUNNING_PIDS+=($!)
-  else
-    print error "Firebase failed to start"
-    return 1
-  fi
-}
-
-start_dynamodb() {
-  print info "🗄️  Starting DynamoDB..."
-  docker ps --format '{{.Names}}' | grep -q "dynamodb-local" && { print success "DynamoDB already running"; RUNNING_SERVICES+=("DynamoDB"); return; }
-  
-  # Stop and remove existing container if it exists
-  docker stop dynamodb-local 2>/dev/null || true
-  docker rm dynamodb-local 2>/dev/null || true
-  
-  mkdir -p "$PROJECT_DIR/../dynamodb_data"
-  docker run -d --name dynamodb-local -p 8000:8000 \
-    -v "$PROJECT_DIR/../dynamodb_data:/home/dynamodblocal/data" \
-    amazon/dynamodb-local:2.5.2 \
-    -jar DynamoDBLocal.jar -sharedDb -dbPath ./data -disableTelemetry
-    
-  if [ $? -eq 0 ]; then
-    RUNNING_SERVICES+=("DynamoDB")
-    print success "DynamoDB started (http://localhost:8000)"
-  else
-    print error "DynamoDB failed to start"
-    return 1
-  fi
-}
-
-start_pocketbase() {
-  print info "📱 Starting PocketBase..."
-  check_port 8090 && { print success "PocketBase already running"; RUNNING_SERVICES+=("PocketBase"); return; }
-  mkdir -p "$PROJECT_DIR/../pb_data" && cd "$PROJECT_DIR/.."
-  pocketbase serve --http=127.0.0.1:8090 --dir=pb_data >"$PROJECT_DIR/scripts/pocketbase.log" 2>&1 &
-  local pid=$!
-  RUNNING_PIDS+=($pid) 
-  RUNNING_SERVICES+=("PocketBase")
-  
-  # Wait a bit for startup, then check if it's running
-  sleep 2
-  if kill -0 "$pid" 2>/dev/null; then
-    print success "PocketBase started (http://127.0.0.1:8090)"
-    # Show logs in background
-    tail -f "$PROJECT_DIR/scripts/pocketbase.log" &
-    RUNNING_PIDS+=($!)
-  else
-    print error "PocketBase failed to start"
-    return 1
-  fi
-}
-
-install_missing() {
-  ! check_cmd firebase && print warn "Firebase CLI missing" && check_cmd npm && npm install -g firebase-tools
-  ! check_cmd docker && print error "Docker missing or not running"
-  ! check_cmd pocketbase && check_cmd brew && brew install pocketbase
-}
-
-show_status() {
-  echo -e "\n${CYAN}📋 Emulator Status:${NC}"
-  echo -e "1) Firebase     - $(check_cmd firebase && echo -e "${GREEN}✅${NC}" || echo -e "${RED}❌${NC}")"
-  echo -e "2) DynamoDB     - $(check_cmd docker && echo -e "${GREEN}✅${NC}" || echo -e "${RED}❌${NC}")"
-  echo -e "3) PocketBase   - $(check_cmd pocketbase && echo -e "${GREEN}✅${NC}" || echo -e "${RED}❌${NC}")"
-}
-
-run_selection() {
-  echo -e "\n${CYAN}🎯 Select emulators to start (1 2 3 or Enter for all):${NC}"
-  read -r selection
-
-  [[ -z "$selection" ]] && selection="1 2 3"
-
-  for num in $selection; do
-    case $num in
-      1) check_cmd firebase && start_firebase || print error "Missing Firebase CLI" ;;
-      2) check_cmd docker && start_dynamodb || print error "Docker unavailable" ;;
-      3) check_cmd pocketbase && start_pocketbase || print error "Missing PocketBase" ;;
-      *) print warn "Invalid selection: $num" ;;
-    esac
+# Discover available emulators
+discover_emulators() {
+  AVAILABLE_EMULATORS=()
+  for emulator_file in "$EMULATORS_DIR"/*.sh; do
+    [ -f "$emulator_file" ] || continue
+    local name=$(basename "$emulator_file" .sh)
+    AVAILABLE_EMULATORS+=("$name")
   done
 }
 
+# Load emulator and check if installed
+load_emulator() {
+  local name="$1"
+  local emulator_file="$EMULATORS_DIR/${name}.sh"
+  
+  if [ ! -f "$emulator_file" ]; then
+    return 1
+  fi
+  
+  source "$emulator_file"
+  return 0
+}
+
+# Install missing emulators
+install_missing() {
+  for emulator in "${AVAILABLE_EMULATORS[@]}"; do
+    if load_emulator "$emulator"; then
+      if ! check_installed; then
+        print warn "$EMULATOR_NAME not installed, attempting installation..."
+        if install; then
+          print success "$EMULATOR_NAME installed successfully"
+        else
+          print error "Failed to install $EMULATOR_NAME"
+        fi
+      fi
+    fi
+  done
+}
+
+# Show emulator status
+show_status() {
+  echo -e "\n${CYAN}📋 Available Emulators:${NC}"
+  local index=1
+  
+  for emulator in "${AVAILABLE_EMULATORS[@]}"; do
+    if load_emulator "$emulator"; then
+      local status="❌ Not installed"
+      if check_installed; then
+        status="${GREEN}✅ Installed${NC}"
+      fi
+      echo -e "$index) $EMULATOR_NAME - $status"
+      ((index++))
+    fi
+  done
+}
+
+# Start an emulator
+start_emulator() {
+  local name="$1"
+  local emulator_file="$EMULATORS_DIR/${name}.sh"
+  
+  if ! load_emulator "$name"; then
+    print error "Emulator $name not found"
+    return 1
+  fi
+  
+  if ! check_installed; then
+    print error "$EMULATOR_NAME not installed"
+    return 1
+  fi
+  
+  print info "🚀 Starting $EMULATOR_NAME..."
+  
+  # Check if already running by checking primary port
+  local primary_port="${EMULATOR_PORTS[0]}"
+  if lsof -i :"$primary_port" >/dev/null 2>&1; then
+    print success "$EMULATOR_NAME already running ($EMULATOR_URL)"
+    RUNNING_SERVICES+=("$EMULATOR_NAME")
+    return 0
+  fi
+  
+  # Start the emulator
+  local log_file="$SCRIPT_DIR/${name}.log"
+  local pid
+  pid=$(start "$PROJECT_DIR" "$log_file")
+  local start_result=$?
+  
+  if [ $start_result -eq 0 ] && [ -n "$pid" ]; then
+    RUNNING_PIDS+=("$pid")
+    
+    # Wait and verify startup
+    sleep 3
+    if kill -0 "$pid" 2>/dev/null || lsof -i :"$primary_port" >/dev/null 2>&1; then
+      RUNNING_SERVICES+=("$EMULATOR_NAME")
+      print success "$EMULATOR_NAME started ($EMULATOR_URL)"
+      
+      # Show logs if available
+      if [ -f "$log_file" ]; then
+        tail -f "$log_file" &
+        RUNNING_PIDS+=($!)
+      fi
+      return 0
+    else
+      print error "$EMULATOR_NAME failed to start"
+      return 1
+    fi
+  else
+    print error "$EMULATOR_NAME failed to start"
+    return 1
+  fi
+}
+
+# Get user selection and start emulators
+run_selection() {
+  echo -e "\n${CYAN}🎯 Select emulators to start (e.g., '1 3' or Enter for all):${NC}"
+  read -r selection
+  
+  # Default to all if empty
+  if [[ -z "$selection" ]]; then
+    selection=$(seq 1 ${#AVAILABLE_EMULATORS[@]})
+  fi
+  
+  # Start selected emulators
+  for num in $selection; do
+    if [[ "$num" =~ ^[0-9]+$ ]] && [ "$num" -ge 1 ] && [ "$num" -le ${#AVAILABLE_EMULATORS[@]} ]; then
+      local emulator_name="${AVAILABLE_EMULATORS[$((num-1))]}"
+      start_emulator "$emulator_name"
+    else
+      print warn "Invalid selection: $num"
+    fi
+  done
+}
+
+# Main function
 main() {
   print header
+  
+  # Discover available emulators
+  discover_emulators
+  
+  if [ ${#AVAILABLE_EMULATORS[@]} -eq 0 ]; then
+    print error "No emulators found in $EMULATORS_DIR"
+    exit 1
+  fi
+  
+  # Install missing emulators
   install_missing
+  
+  # Show status
   show_status
+  
+  # Get selection and start emulators
   run_selection
-
+  
+  # Wait for emulators
   if [ ${#RUNNING_SERVICES[@]} -gt 0 ]; then
     echo -e "\n${GREEN}🎉 Running: ${RUNNING_SERVICES[*]}${NC}"
     if [ ${#RUNNING_PIDS[@]} -gt 0 ]; then
       echo -e "${YELLOW}Press Ctrl+C to stop...${NC}"
       wait
     else
-      echo -e "${YELLOW}All emulators were already running. Press Ctrl+C to exit monitoring.${NC}"
-      # Keep script alive to show we're monitoring
+      echo -e "${YELLOW}All emulators were already running. Press Ctrl+C to exit.${NC}"
       while true; do sleep 1; done
     fi
+  else
+    print warn "No emulators started"
   fi
 }
 
-main
+main "$@" 
