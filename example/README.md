@@ -22,7 +22,19 @@ All implementations use the **same interface** and **same UI code** - demonstrat
 
 ## 🚀 Quick Start
 
+### Option 1: Start with InMemory (No Setup)
 ```bash
+cd example
+flutter run -d web
+```
+
+### Option 2: Start with All Emulators
+```bash
+# Install and start all emulators
+cd example/scripts
+./start_emulators.sh
+
+# In another terminal, run the app
 cd example
 flutter run -d web
 ```
@@ -33,19 +45,20 @@ The app will start with **InMemory** repository selected by default. Use the dro
 
 Before switching to external implementations, you need to start their local emulators:
 
-### For Firebase
+### 🚀 Emulator Manager
+
+Use the comprehensive emulator management script that handles installation and startup:
+
 ```bash
-# Start Firebase emulator (keep running in separate terminal)
-cd example
-firebase emulators:start --only firestore
+cd example/scripts
+./start_emulators.sh
 ```
 
-### For PocketBase  
-```bash
-# Start PocketBase server (keep running in separate terminal)
-cd ../kiss_pocketbase_repository
-./scripts/start_emulator.sh
-```
+**Features:**
+- **Install emulators** - Firebase CLI, Docker (for DynamoDB), PocketBase
+- **Start individual or multiple emulators** - Interactive selection
+- **Status checking** - See what's installed and running
+- **Graceful shutdown** - Ctrl+C stops all emulators cleanly
 
 ### For InMemory
 No setup required - works immediately!
@@ -80,6 +93,7 @@ No setup required - works immediately!
 | **InMemory** | [Built-in Repository](../README.md#using-the-in-memory-implementation) | None - works immediately |
 | **Firebase** | [Firebase Repository](https://github.com/WAMF/kiss_firebase_repository) | Firebase CLI |
 | **PocketBase** | [PocketBase Repository](https://github.com/WAMF/kiss_pocketbase_repository) | PocketBase binary |
+| **DynamoDB** | [DynamoDB Repository](https://github.com/WAMF/kiss_dynamodb_repository) | Docker |
 
 For detailed feature comparison, see the [main documentation](../README.md#implementation-comparison).
 
