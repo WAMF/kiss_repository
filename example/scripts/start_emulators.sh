@@ -139,6 +139,13 @@ start_emulator() {
       RUNNING_SERVICES+=("$EMULATOR_NAME")
       print success "$EMULATOR_NAME started ($EMULATOR_URL)"
       
+      # Show special info for PocketBase
+      if [[ "$name" == "pocketbase" ]]; then
+        echo -e "  ${CYAN}👥 Test user:${NC} testuser@example.com / testuser123"
+        echo -e "  ${CYAN}👤 Admin:${NC}     test@test.com / testpassword123"
+        echo -e "  ${CYAN}🔗 Admin UI:${NC}  http://127.0.0.1:8090/_/"
+      fi
+      
       # Show logs if available
       if [ -f "$log_file" ]; then
         tail -f "$log_file" &
