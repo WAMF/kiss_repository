@@ -60,7 +60,10 @@ setup_schema() {
     -d '{"identity": "test@test.com", "password": "testpassword123"}' | \
     grep -o '"token":"[^"]*' | cut -d'"' -f4)
   
-  [ -z "$admin_token" ] && return 1
+  if [ -z "$admin_token" ]; then
+    echo "Failed to get admin token" >&2
+    return 1
+  fi
   
   # Create products collection
   curl -s -X POST http://127.0.0.1:8090/api/collections \

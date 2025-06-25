@@ -24,11 +24,13 @@ Use the dropdown to switch between implementations in real-time.
 ## 📊 Available Implementations
 
 | Implementation | Requirements | Setup |
-|----------------|--------------|-------|
-| **InMemory** | None | Works immediately |
+|----------------|--------|-------|
+| **InMemory** | None   | Works immediately |
 | **Firebase** | Firebase CLI | `./start_emulators.sh` |
 | **PocketBase** | PocketBase | `./start_emulators.sh` |
 | **DynamoDB** | Docker | `./start_emulators.sh` |
+
+⚠️ **Missing dependencies?** The script shows warnings but continues with available emulators.
 
 ## 🔧 Adding Your Implementation
 

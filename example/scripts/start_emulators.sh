@@ -66,35 +66,13 @@ load_emulator() {
   return 0
 }
 
-# Install missing emulators
-install_missing() {
+# Check and warn about missing emulators
+check_emulators() {
   for emulator in "${AVAILABLE_EMULATORS[@]}"; do
     if load_emulator "$emulator"; then
       if ! check_installed; then
-        print warn "$EMULATOR_NAME not installed, attempting installation..."
-        if install; then
-          print success "$EMULATOR_NAME installed successfully"
-        else
-          print error "Failed to install $EMULATOR_NAME"
-        fi
+        print warn "$EMULATOR_NAME not installed - skipping (install with: brew install ${emulator,,} or similar)"
       fi
-    fi
-  done
-}
-
-# Show emulator status
-show_status() {
-  echo -e "\n${CYAN}📋 Available Emulators:${NC}"
-  local index=1
-  
-  for emulator in "${AVAILABLE_EMULATORS[@]}"; do
-    if load_emulator "$emulator"; then
-      local status="❌ Not installed"
-      if check_installed; then
-        status="${GREEN}✅ Installed${NC}"
-      fi
-      echo -e "$index) $EMULATOR_NAME - $status"
-      ((index++))
     fi
   done
 }
@@ -110,7 +88,7 @@ start_emulator() {
   fi
   
   if ! check_installed; then
-    print error "$EMULATOR_NAME not installed"
+    print warn "$EMULATOR_NAME not installed - skipping"
     return 1
   fi
   
@@ -162,24 +140,12 @@ start_emulator() {
   fi
 }
 
-# Get user selection and start emulators
-run_selection() {
-  echo -e "\n${CYAN}🎯 Select emulators to start (e.g., '1 3' or Enter for all):${NC}"
-  read -r selection
+# Start all available emulators
+start_all_emulators() {
+  echo -e "\n${CYAN}🚀 Starting all available emulators...${NC}"
   
-  # Default to all if empty
-  if [[ -z "$selection" ]]; then
-    selection=$(seq 1 ${#AVAILABLE_EMULATORS[@]})
-  fi
-  
-  # Start selected emulators
-  for num in $selection; do
-    if [[ "$num" =~ ^[0-9]+$ ]] && [ "$num" -ge 1 ] && [ "$num" -le ${#AVAILABLE_EMULATORS[@]} ]; then
-      local emulator_name="${AVAILABLE_EMULATORS[$((num-1))]}"
-      start_emulator "$emulator_name"
-    else
-      print warn "Invalid selection: $num"
-    fi
+  for emulator in "${AVAILABLE_EMULATORS[@]}"; do
+    start_emulator "$emulator"
   done
 }
 
@@ -195,14 +161,11 @@ main() {
     exit 1
   fi
   
-  # Install missing emulators
-  install_missing
+  # Check emulators and show warnings
+  check_emulators
   
-  # Show status
-  show_status
-  
-  # Get selection and start emulators
-  run_selection
+  # Start all emulators
+  start_all_emulators
   
   # Wait for emulators
   if [ ${#RUNNING_SERVICES[@]} -gt 0 ]; then
