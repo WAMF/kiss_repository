@@ -14,8 +14,7 @@ dependencies:
     sdk: flutter
 
   # Repository packages
-  kiss_repository:
-    path: ../
+  kiss_repository: ^0.11.0
   kiss_firebase_repository:
     path: ../../kiss_firebase_repository/
   kiss_pocketbase_repository:

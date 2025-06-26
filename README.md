@@ -225,9 +225,10 @@ Add your implementation to the comparison table below, documenting capabilities,
 | **[Firebase Firestore](https://github.com/WAMF/kiss_firebase_repository)** | Flutter | Real-time apps with offline support |
 | **[PocketBase](https://github.com/WAMF/kiss_pocketbase_repository)** | Pure Dart | Self-hosted apps |
 | **[AWS DynamoDB](https://github.com/WAMF/kiss_dynamodb_repository)** | Pure Dart | Server-side/enterprise apps |
+| **[Drift (SQLite)](https://github.com/WAMF/kiss_drift_repository)** | Pure Dart | Local/embedded database apps |
 
 
-**ID Generation:** Firebase/InMemory return what you specify, while PocketBase/DynamoDB always return the complete database record.
+**ID Generation:** Firebase/InMemory/Drift return what you specify, while PocketBase/DynamoDB always return the complete database record.
 
 ## 📁 Example Application
 
