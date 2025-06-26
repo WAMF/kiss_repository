@@ -1,30 +1,33 @@
 import 'package:kiss_repository/kiss_repository.dart';
 
+import '../../models/product_model.dart';
 import '../../queries/product_queries.dart';
 
-class DriftProductQueryBuilder implements QueryBuilder<String> {
+typedef ProductFilter = bool Function(ProductModel);
+
+class DriftProductQueryBuilder implements QueryBuilder<ProductFilter?> {
   @override
-  String build(Query query) {
+  ProductFilter? build(Query query) {
     if (query is QueryByName) {
-      return 'name:${query.searchTerm}';
+      return (product) => product.name.toLowerCase().contains(query.searchTerm.toLowerCase());
     }
 
     if (query is QueryByPriceGreaterThan) {
-      return 'price_gt:${query.threshold}';
+      return (product) => product.price > query.threshold;
     }
 
     if (query is QueryByPriceLessThan) {
-      return 'price_lt:${query.threshold}';
+      return (product) => product.price < query.threshold;
     }
 
     if (query is QueryByCreatedAfter) {
-      return 'created_after:${query.dateTime.toIso8601String()}';
+      return (product) => product.created.isAfter(query.dateTime);
     }
 
     if (query is QueryByCreatedBefore) {
-      return 'created_before:${query.dateTime.toIso8601String()}';
+      return (product) => product.created.isBefore(query.dateTime);
     }
 
-    return '';
+    return null;
   }
 }
