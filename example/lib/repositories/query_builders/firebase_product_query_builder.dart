@@ -21,20 +21,15 @@ class FirestoreProductQueryBuilder implements QueryBuilder<firestore.Query<Map<S
       }
     }
 
-    if (query is QueryByPriceGreaterThan) {
-      return baseQuery.where('price', isGreaterThan: query.threshold).orderBy('price');
-    }
-
-    if (query is QueryByPriceLessThan) {
-      return baseQuery.where('price', isLessThan: query.threshold).orderBy('price', descending: true);
-    }
-
-    if (query is QueryByCreatedAfter) {
-      return baseQuery.where('created', isGreaterThan: query.dateTime).orderBy('created', descending: true);
-    }
-
-    if (query is QueryByCreatedBefore) {
-      return baseQuery.where('created', isLessThan: query.dateTime).orderBy('created', descending: true);
+    if (query is QueryByPriceRange) {
+      firestore.Query<Map<String, dynamic>> result = baseQuery;
+      if (query.minPrice != null) {
+        result = result.where('price', isGreaterThanOrEqualTo: query.minPrice);
+      }
+      if (query.maxPrice != null) {
+        result = result.where('price', isLessThanOrEqualTo: query.maxPrice);
+      }
+      return result.orderBy('price');
     }
 
     // Default: return all products ordered by creation date (newest first)

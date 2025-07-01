@@ -10,20 +10,12 @@ class InMemoryProductQueryBuilder implements QueryBuilder<InMemoryFilterQuery<Pr
           (product) => product.name.toLowerCase().contains(query.searchTerm.toLowerCase()));
     }
 
-    if (query is QueryByPriceGreaterThan) {
-      return InMemoryFilterQuery<ProductModel>((product) => product.price > query.threshold);
-    }
-
-    if (query is QueryByPriceLessThan) {
-      return InMemoryFilterQuery<ProductModel>((product) => product.price < query.threshold);
-    }
-
-    if (query is QueryByCreatedAfter) {
-      return InMemoryFilterQuery<ProductModel>((product) => product.created.isAfter(query.dateTime));
-    }
-
-    if (query is QueryByCreatedBefore) {
-      return InMemoryFilterQuery<ProductModel>((product) => product.created.isBefore(query.dateTime));
+    if (query is QueryByPriceRange) {
+      return InMemoryFilterQuery<ProductModel>((product) {
+        final minOk = query.minPrice == null || product.price >= query.minPrice!;
+        final maxOk = query.maxPrice == null || product.price <= query.maxPrice!;
+        return minOk && maxOk;
+      });
     }
 
     // Default: return all products

@@ -1,31 +1,26 @@
-import 'package:kiss_repository/kiss_repository.dart';
+import 'package:drift/drift.dart';
+import 'package:kiss_repository/kiss_repository.dart' as kiss;
 
-import '../../models/product_model.dart';
 import '../../queries/product_queries.dart';
 
-typedef ProductFilter = bool Function(ProductModel);
-
-class DriftProductQueryBuilder implements QueryBuilder<ProductFilter?> {
+class DriftProductQueryBuilder implements kiss.QueryBuilder<Expression<bool>?> {
   @override
-  ProductFilter? build(Query query) {
+  Expression<bool>? build(kiss.Query query) {
     if (query is QueryByName) {
-      return (product) => product.name.toLowerCase().contains(query.searchTerm.toLowerCase());
+      return CustomExpression("data LIKE '%\"name\":\"${query.searchTerm}%'");
     }
 
-    if (query is QueryByPriceGreaterThan) {
-      return (product) => product.price > query.threshold;
-    }
-
-    if (query is QueryByPriceLessThan) {
-      return (product) => product.price < query.threshold;
-    }
-
-    if (query is QueryByCreatedAfter) {
-      return (product) => product.created.isAfter(query.dateTime);
-    }
-
-    if (query is QueryByCreatedBefore) {
-      return (product) => product.created.isBefore(query.dateTime);
+    if (query is QueryByPriceRange) {
+      final conditions = <String>[];
+      if (query.minPrice != null) {
+        conditions.add("CAST(JSON_EXTRACT(data, '\$.price') AS REAL) >= ${query.minPrice}");
+      }
+      if (query.maxPrice != null) {
+        conditions.add("CAST(JSON_EXTRACT(data, '\$.price') AS REAL) <= ${query.maxPrice}");
+      }
+      if (conditions.isNotEmpty) {
+        return CustomExpression(conditions.join(' AND '));
+      }
     }
 
     return null;

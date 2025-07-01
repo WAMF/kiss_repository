@@ -17,70 +17,23 @@ class QueryByName extends Query {
   String toString() => 'QueryByName(searchTerm: $searchTerm)';
 }
 
-class QueryByPriceGreaterThan extends Query {
-  final double threshold;
+class QueryByPriceRange extends Query {
+  final double? minPrice;
+  final double? maxPrice;
 
-  const QueryByPriceGreaterThan(this.threshold);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is QueryByPriceGreaterThan && runtimeType == other.runtimeType && threshold == other.threshold;
-
-  @override
-  int get hashCode => threshold.hashCode;
-
-  @override
-  String toString() => 'QueryByPriceGreaterThan(threshold: $threshold)';
-}
-
-class QueryByPriceLessThan extends Query {
-  final double threshold;
-
-  const QueryByPriceLessThan(this.threshold);
+  const QueryByPriceRange({this.minPrice, this.maxPrice});
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is QueryByPriceLessThan && runtimeType == other.runtimeType && threshold == other.threshold;
+      other is QueryByPriceRange &&
+          runtimeType == other.runtimeType &&
+          minPrice == other.minPrice &&
+          maxPrice == other.maxPrice;
 
   @override
-  int get hashCode => threshold.hashCode;
+  int get hashCode => minPrice.hashCode ^ maxPrice.hashCode;
 
   @override
-  String toString() => 'QueryByPriceLessThan(threshold: $threshold)';
-}
-
-class QueryByCreatedAfter extends Query {
-  final DateTime dateTime;
-
-  const QueryByCreatedAfter(this.dateTime);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is QueryByCreatedAfter && runtimeType == other.runtimeType && dateTime == other.dateTime;
-
-  @override
-  int get hashCode => dateTime.hashCode;
-
-  @override
-  String toString() => 'QueryByCreatedAfter(dateTime: $dateTime)';
-}
-
-class QueryByCreatedBefore extends Query {
-  final DateTime dateTime;
-
-  const QueryByCreatedBefore(this.dateTime);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is QueryByCreatedBefore && runtimeType == other.runtimeType && dateTime == other.dateTime;
-
-  @override
-  int get hashCode => dateTime.hashCode;
-
-  @override
-  String toString() => 'QueryByCreatedBefore(dateTime: $dateTime)';
+  String toString() => 'QueryByPriceRange(minPrice: $minPrice, maxPrice: $maxPrice)';
 }
