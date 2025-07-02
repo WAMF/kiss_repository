@@ -50,3 +50,20 @@ pb_migrations/
 
 # dynamodb
 dynamodb_data/
+
+# Drift/SQLite Web Files
+web/sqlite3.wasm
+web/drift_worker.dart.js
+web/drift_worker.dart.js.map
+
+# SQLite Database Files (if generated during development)
+*.db
+*.sqlite
+*.sqlite3
+
+# Web Build Artifacts
+web/main.dart.js
+web/main.dart.js.map
+
+# Flutter Web Build
+build/web/
