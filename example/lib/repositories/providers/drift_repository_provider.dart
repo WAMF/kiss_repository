@@ -17,6 +17,7 @@ class DriftRepositoryProvider implements RepositoryProvider<ProductModel> {
     if (_repository != null) return;
 
     try {
+      final database = AppDatabase();
       _repository = await RepositoryDrift.create<ProductModel>(
         tableName: 'products',
         toDrift: (product) => {
@@ -34,6 +35,7 @@ class DriftRepositoryProvider implements RepositoryProvider<ProductModel> {
           created: DateTime.parse(data['created'] as String),
         ),
         queryBuilder: DriftProductQueryBuilder(),
+        database: database,
       );
 
       logger.log('✅ Drift repository initialized (SQLite embedded)');
