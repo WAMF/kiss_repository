@@ -23,7 +23,13 @@ String _generateId() {
   return 'Mem-${_idCounter++}';
 }
 
-class InMemoryRepository<T> implements Repository<T> {
+class InMemoryRepository<T> implements Repository<T> { // Seed with empty list initially
+
+  InMemoryRepository(
+      {required QueryBuilder<InMemoryFilterQuery<T>> queryBuilder,
+      required String path,})
+      : _queryBuilder = queryBuilder,
+        _path = path;
   final QueryBuilder<InMemoryFilterQuery<T>> _queryBuilder;
   final String _path;
   final Map<String, T> _items = {};
@@ -34,13 +40,7 @@ class InMemoryRepository<T> implements Repository<T> {
   // Stream controller for query results using BehaviorSubject, seeded with initial state.
   final BehaviorSubject<List<T>> _queryStreamController =
       BehaviorSubject<List<T>>.seeded(
-          const []); // Seed with empty list initially
-
-  InMemoryRepository(
-      {required QueryBuilder<InMemoryFilterQuery<T>> queryBuilder,
-      required String path})
-      : _queryBuilder = queryBuilder,
-        _path = path;
+          const [],);
 
   @override
   String? get path => _path;
@@ -104,7 +104,7 @@ class InMemoryRepository<T> implements Repository<T> {
     }
     final implementationQuery = _queryBuilder.build(query);
     return List<T>.unmodifiable(
-        _items.values.where(implementationQuery.filter));
+        _items.values.where(implementationQuery.filter),);
   }
 
   @override
@@ -216,7 +216,7 @@ class InMemoryRepository<T> implements Repository<T> {
   Future<Iterable<T>> updateAll(Iterable<IdentifiedObject<T>> items) async {
     await Future<void>.delayed(Duration.zero);
     final updatedItems = <T>[];
-    final Map<String, T> updates = {};
+    final updates = <String, T>{};
 
     for (final identifiedObject in items) {
       final itemPath = _fullItemPath(identifiedObject.id);
@@ -242,9 +242,9 @@ class InMemoryRepository<T> implements Repository<T> {
   @override
   Future<void> deleteAll(Iterable<String> ids) async {
     await Future<void>.delayed(Duration.zero);
-    bool changed = false;
-    final List<String> actuallyDeletedIds =
-        []; // Keep track of IDs actually deleted
+    var changed = false;
+    final actuallyDeletedIds =
+        <String>[]; // Keep track of IDs actually deleted
     for (final id in ids) {
       final itemPath = _fullItemPath(id);
       final removedItem = _items.remove(itemPath);
@@ -270,7 +270,7 @@ class InMemoryRepository<T> implements Repository<T> {
     // If a stream exists for this item, add the updated item.
     // If not, create a new BehaviorSubject seeded with the item.
     final subject =
-        _itemStreamControllers.putIfAbsent(id, () => BehaviorSubject<T>());
+        _itemStreamControllers.putIfAbsent(id, BehaviorSubject<T>.new);
     subject.add(item);
   }
 
@@ -291,7 +291,7 @@ class InMemoryRepository<T> implements Repository<T> {
   @override
   void dispose() {
     // Close all individual item subjects
-    for (var subject in _itemStreamControllers.values) {
+    for (final subject in _itemStreamControllers.values) {
       subject.close();
     }
     _itemStreamControllers.clear();
