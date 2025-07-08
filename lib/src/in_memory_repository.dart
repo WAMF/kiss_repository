@@ -33,9 +33,12 @@ class InMemoryRepository<T> implements Repository<T> {
 
   // Stream controller for query results using BehaviorSubject, seeded with initial state.
   final BehaviorSubject<List<T>> _queryStreamController =
-      BehaviorSubject<List<T>>.seeded(const []); // Seed with empty list initially
+      BehaviorSubject<List<T>>.seeded(
+          const []); // Seed with empty list initially
 
-  InMemoryRepository({required QueryBuilder<InMemoryFilterQuery<T>> queryBuilder, required String path})
+  InMemoryRepository(
+      {required QueryBuilder<InMemoryFilterQuery<T>> queryBuilder,
+      required String path})
       : _queryBuilder = queryBuilder,
         _path = path;
 
@@ -100,7 +103,8 @@ class InMemoryRepository<T> implements Repository<T> {
       return List<T>.unmodifiable(_items.values);
     }
     final implementationQuery = _queryBuilder.build(query);
-    return List<T>.unmodifiable(_items.values.where(implementationQuery.filter));
+    return List<T>.unmodifiable(
+        _items.values.where(implementationQuery.filter));
   }
 
   @override
@@ -139,7 +143,8 @@ class InMemoryRepository<T> implements Repository<T> {
     T object, {
     T Function(T object, String id)? updateObjectWithId,
   }) async {
-    final identified = autoIdentify(object, updateObjectWithId: updateObjectWithId);
+    final identified =
+        autoIdentify(object, updateObjectWithId: updateObjectWithId);
     return add(identified);
   }
 
@@ -176,11 +181,11 @@ class InMemoryRepository<T> implements Repository<T> {
     await Future<void>.delayed(Duration.zero);
     final itemPath = _fullItemPath(id);
     final removedItem = _items.remove(itemPath);
-    if (removedItem != null) {
-      _notifyItemDelete(id);
-      _notifyQueryUpdate();
+    if (removedItem == null) {
+      throw RepositoryException.notFound(id);
     }
-    // Silently succeed if item doesn't exist (consistent with other implementations)
+    _notifyItemDelete(id);
+    _notifyQueryUpdate();
   }
 
   // --- Batch Operations ---
@@ -238,7 +243,8 @@ class InMemoryRepository<T> implements Repository<T> {
   Future<void> deleteAll(Iterable<String> ids) async {
     await Future<void>.delayed(Duration.zero);
     bool changed = false;
-    final List<String> actuallyDeletedIds = []; // Keep track of IDs actually deleted
+    final List<String> actuallyDeletedIds =
+        []; // Keep track of IDs actually deleted
     for (final id in ids) {
       final itemPath = _fullItemPath(id);
       final removedItem = _items.remove(itemPath);
@@ -263,7 +269,8 @@ class InMemoryRepository<T> implements Repository<T> {
   void _notifyItemUpdate(String id, T item) {
     // If a stream exists for this item, add the updated item.
     // If not, create a new BehaviorSubject seeded with the item.
-    final subject = _itemStreamControllers.putIfAbsent(id, () => BehaviorSubject<T>());
+    final subject =
+        _itemStreamControllers.putIfAbsent(id, () => BehaviorSubject<T>());
     subject.add(item);
   }
 
