@@ -241,16 +241,18 @@ packages:
   kiss_firebase_repository:
     dependency: "direct main"
     description:
-      path: "../../kiss_firebase_repository"
-      relative: true
-    source: path
+      name: kiss_firebase_repository
+      sha256: "3f6d7cd75a1f4b210bf582565ef6a1d3fc22e882cf195830f6deffde949c6c7c"
+      url: "https://pub.dev"
+    source: hosted
     version: "0.9.0"
   kiss_pocketbase_repository:
     dependency: "direct main"
     description:
-      path: "../../kiss_pocketbase_repository"
-      relative: true
-    source: path
+      name: kiss_pocketbase_repository
+      sha256: "4a63c1d962de3364d3f0f8c10a26e6c927611344e9a41dd55c39be90141aaa48"
+      url: "https://pub.dev"
+    source: hosted
     version: "0.1.0"
   kiss_repository:
     dependency: "direct main"
