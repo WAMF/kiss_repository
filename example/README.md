@@ -23,12 +23,13 @@ Use the dropdown to switch between implementations in real-time.
 
 ## 📊 Available Implementations
 
-| Implementation | Requirements | Setup |
-|----------------|--------|-------|
-| **InMemory** | None   | Works immediately |
-| **Firebase** | Firebase CLI | `./start_emulators.sh` |
-| **PocketBase** | PocketBase | `./start_emulators.sh` |
-| **DynamoDB** | Docker | `./start_emulators.sh` |
+| Implementation | Platforms | Requirements | Setup |
+|----------------|-----------|--------|-------|
+| **InMemory** | All (including web) | None   | Works immediately |
+| **Drift (SQLite)** | All (including web) | None | Works immediately (web assets pre-included) |
+| **Firebase** | All (including web) | Firebase CLI | `./start_emulators.sh` |
+| **PocketBase** | All (including web) | PocketBase | `./start_emulators.sh` |
+| **DynamoDB** | All (including web) | Docker | `./start_emulators.sh` |
 
 ⚠️ **Missing dependencies?** The script shows warnings but continues with available emulators.
 

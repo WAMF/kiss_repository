@@ -8,22 +8,15 @@ class PocketBaseProductQueryBuilder implements QueryBuilder<String> {
       return "name ~ '${query.searchTerm}'";
     }
 
-    if (query is QueryByPriceGreaterThan) {
-      return "price > ${query.threshold}";
-    }
-
-    if (query is QueryByPriceLessThan) {
-      return "price < ${query.threshold}";
-    }
-
-    if (query is QueryByCreatedAfter) {
-      final dateString = query.dateTime.toIso8601String();
-      return "created > '$dateString'";
-    }
-
-    if (query is QueryByCreatedBefore) {
-      final dateString = query.dateTime.toIso8601String();
-      return "created < '$dateString'";
+    if (query is QueryByPriceRange) {
+      final conditions = <String>[];
+      if (query.minPrice != null) {
+        conditions.add("price >= ${query.minPrice}");
+      }
+      if (query.maxPrice != null) {
+        conditions.add("price <= ${query.maxPrice}");
+      }
+      return conditions.join(' && ');
     }
 
     // Default: return all products

@@ -31,24 +31,17 @@ class _SearchTabState extends State<SearchTab> {
     final minPriceText = _minPriceController.text.trim();
     final maxPriceText = _maxPriceController.text.trim();
 
-    // For now, we'll use the first available filter
-    // In a real app, you might want to combine multiple filters
+    // If search term is provided, use name search
     if (searchTerm.isNotEmpty) {
       return QueryByName(searchTerm);
     }
 
-    if (minPriceText.isNotEmpty) {
-      final minPrice = double.tryParse(minPriceText);
-      if (minPrice != null) {
-        return QueryByPriceGreaterThan(minPrice);
-      }
-    }
+    // Handle price filtering
+    final minPrice = minPriceText.isNotEmpty ? double.tryParse(minPriceText) : null;
+    final maxPrice = maxPriceText.isNotEmpty ? double.tryParse(maxPriceText) : null;
 
-    if (maxPriceText.isNotEmpty) {
-      final maxPrice = double.tryParse(maxPriceText);
-      if (maxPrice != null) {
-        return QueryByPriceLessThan(maxPrice);
-      }
+    if (minPrice != null || maxPrice != null) {
+      return QueryByPriceRange(minPrice: minPrice, maxPrice: maxPrice);
     }
 
     return const AllQuery();
@@ -165,19 +158,22 @@ class _SearchTabState extends State<SearchTab> {
 
   String _buildSearchResultsTitle() {
     final searchTerm = _searchController.text.trim();
-    final minPrice = _minPriceController.text.trim();
-    final maxPrice = _maxPriceController.text.trim();
+    final minPriceText = _minPriceController.text.trim();
+    final maxPriceText = _maxPriceController.text.trim();
 
     if (searchTerm.isNotEmpty) {
       return 'Search Results for "$searchTerm"';
     }
 
-    if (minPrice.isNotEmpty) {
-      return 'Products over \$$minPrice';
-    }
+    final minPrice = minPriceText.isNotEmpty ? double.tryParse(minPriceText) : null;
+    final maxPrice = maxPriceText.isNotEmpty ? double.tryParse(maxPriceText) : null;
 
-    if (maxPrice.isNotEmpty) {
-      return 'Products under \$$maxPrice';
+    if (minPrice != null && maxPrice != null) {
+      return 'Products between \$${minPrice.toStringAsFixed(2)} - \$${maxPrice.toStringAsFixed(2)}';
+    } else if (minPrice != null) {
+      return 'Products over \$${minPrice.toStringAsFixed(2)}';
+    } else if (maxPrice != null) {
+      return 'Products under \$${maxPrice.toStringAsFixed(2)}';
     }
 
     return 'All Products';

@@ -1,6 +1,7 @@
 import 'package:kiss_dependencies/kiss_dependencies.dart';
 
 import 'models/product_model.dart';
+import 'repositories/providers/drift_repository_provider.dart';
 import 'repositories/providers/firebase_repository_provider.dart';
 import 'repositories/providers/inmemory_repository_provider.dart';
 import 'repositories/providers/pocketbase_repository_provider.dart';
@@ -25,6 +26,11 @@ class Dependencies {
     registerLazy<RepositoryProvider<ProductModel>>(
       () => PocketBaseRepositoryProvider(),
       identifier: 'pocketbase_product_provider',
+    );
+
+    registerLazy<RepositoryProvider<ProductModel>>(
+      () => DriftRepositoryProvider(),
+      identifier: 'drift_product_provider',
     );
 
     _isInitialized = true;

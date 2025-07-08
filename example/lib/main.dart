@@ -105,6 +105,8 @@ class _ProductManagementPageState extends State<ProductManagementPage> with Tick
         return 'firebase_product_provider';
       case RepositoryType.pocketbase:
         return 'pocketbase_product_provider';
+      case RepositoryType.drift:
+        return 'drift_product_provider';
       case RepositoryType.inMemory:
         return 'inmemory_product_provider';
     }

@@ -17,7 +17,9 @@ dependencies:
   kiss_repository: ^0.11.0
   kiss_firebase_repository: ^0.9.0
   kiss_pocketbase_repository: ^0.1.0
-  
+  kiss_drift_repository:
+    path: ../../kiss_drift_repository/
+
   # Dependency injection
   kiss_dependencies: ^1.3.0
 
