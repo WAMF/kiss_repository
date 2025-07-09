@@ -15,11 +15,10 @@ A lightweight, flexible repository pattern implementation for Dart applications 
 
 ## Installation
 
-Add this package to your `pubspec.yaml`:
+Add this package using the Dart pub command:
 
-```yaml
-dependencies:
-  kiss_repository: ^0.9.0
+```bash
+dart pub add kiss_repository
 ```
 
 ## Usage
@@ -159,6 +158,51 @@ repository.streamQuery(query: UserQuery(role: 'admin')).listen((admins) {
 5. Use batch operations when performing multiple operations of the same type
 6. **Always call `dispose()` when done with a repository to clean up resources**
 7. **Handle ID generation outside the repository - the interface expects you to provide IDs**
+
+## 🧪 Testing
+
+This package includes comprehensive tests that are available as a separate package: **[kiss_repository_tests](https://pub.dev/packages/kiss_repository_tests)**
+
+### Using the Test Suite
+
+All repository implementations should use the shared test suite to ensure consistency and completeness. Add the test package to your `dev_dependencies`:
+
+```yaml
+dev_dependencies:
+  kiss_repository_tests: ^0.9.0
+  test: ^1.21.0
+```
+
+### Running Tests for Your Implementation
+
+```dart
+import 'package:kiss_repository_tests/kiss_repository_tests.dart';
+
+void main() {
+  runRepositoryTests(
+    implementationName: 'MyImplementation',
+    factoryProvider: () => MyRepositoryFactory(),
+    cleanup: () {},
+  );
+}
+```
+
+The test suite covers:
+- ✅ **ID Management** - Auto-generation and validation
+- ✅ **CRUD Operations** - Create, Read, Update, Delete
+- ✅ **Batch Operations** - Multi-item operations
+- ✅ **Query System** - Filtering and searching
+- ✅ **Streaming** - Real-time updates
+- ✅ **Error Handling** - Exception scenarios
+- ✅ **Resource Management** - Disposal and cleanup
+
+### Benefits of Shared Tests
+
+- **Consistency**: All implementations behave the same way
+- **Completeness**: No missing functionality
+- **Reliability**: Battle-tested scenarios
+- **Documentation**: Tests serve as living documentation
+- **Regression Protection**: Prevents breaking changes
 
 ## Development Pattern for New Repository Implementations
 

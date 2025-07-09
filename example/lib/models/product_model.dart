@@ -1,11 +1,8 @@
-class ProductModel {
-  final String id;
-  final String name;
-  final double price;
-  final String description;
-  final DateTime created;
+import 'package:meta/meta.dart';
 
-  ProductModel({
+@immutable
+class ProductModel {
+  const ProductModel({
     required this.id,
     required this.name,
     required this.price,
@@ -19,6 +16,11 @@ class ProductModel {
     this.description = '',
   })  : id = '',
         created = DateTime.now();
+  final String id;
+  final String name;
+  final double price;
+  final String description;
+  final DateTime created;
 
   ProductModel copyWith({
     String? id,
@@ -38,7 +40,9 @@ class ProductModel {
 
   @override
   String toString() {
-    return 'ProductModel(id: $id, name: $name, price: \$${price.toStringAsFixed(2)}, description: $description, created: $created)';
+    return 'ProductModel(id: $id, name: $name, '
+        'price: \$${price.toStringAsFixed(2)}, '
+        'description: $description, created: $created)';
   }
 
   @override
@@ -54,6 +58,10 @@ class ProductModel {
 
   @override
   int get hashCode {
-    return id.hashCode ^ name.hashCode ^ price.hashCode ^ description.hashCode ^ created.hashCode;
+    return id.hashCode ^
+        name.hashCode ^
+        price.hashCode ^
+        description.hashCode ^
+        created.hashCode;
   }
 }

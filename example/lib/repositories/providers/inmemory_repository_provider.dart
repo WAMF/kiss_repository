@@ -1,7 +1,7 @@
+import 'package:example/models/product_model.dart';
+import 'package:example/repositories/query_builders/inmemory_product_query_builder.dart';
+import 'package:example/repositories/repository_provider.dart';
 import 'package:kiss_repository/kiss_repository.dart';
-import '../repository_provider.dart';
-import '../query_builders/inmemory_product_query_builder.dart';
-import '../../models/product_model.dart';
 
 class InMemoryRepositoryProvider implements RepositoryProvider<ProductModel> {
   Repository<ProductModel>? _repository;

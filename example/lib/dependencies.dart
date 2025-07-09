@@ -1,10 +1,9 @@
+import 'package:example/models/product_model.dart';
+import 'package:example/repositories/providers/firebase_repository_provider.dart';
+import 'package:example/repositories/providers/inmemory_repository_provider.dart';
+import 'package:example/repositories/providers/pocketbase_repository_provider.dart';
+import 'package:example/repositories/repository_provider.dart';
 import 'package:kiss_dependencies/kiss_dependencies.dart';
-
-import 'models/product_model.dart';
-import 'repositories/providers/firebase_repository_provider.dart';
-import 'repositories/providers/inmemory_repository_provider.dart';
-import 'repositories/providers/pocketbase_repository_provider.dart';
-import 'repositories/repository_provider.dart';
 
 class Dependencies {
   static bool _isInitialized = false;
@@ -13,17 +12,17 @@ class Dependencies {
     if (_isInitialized) return;
 
     registerLazy<RepositoryProvider<ProductModel>>(
-      () => FirebaseRepositoryProvider(),
+      FirebaseRepositoryProvider.new,
       identifier: 'firebase_product_provider',
     );
 
     registerLazy<RepositoryProvider<ProductModel>>(
-      () => InMemoryRepositoryProvider(),
+      InMemoryRepositoryProvider.new,
       identifier: 'inmemory_product_provider',
     );
 
     registerLazy<RepositoryProvider<ProductModel>>(
-      () => PocketBaseRepositoryProvider(),
+      PocketBaseRepositoryProvider.new,
       identifier: 'pocketbase_product_provider',
     );
 

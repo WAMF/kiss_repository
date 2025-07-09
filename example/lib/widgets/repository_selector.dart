@@ -1,12 +1,16 @@
+import 'package:example/repositories/repository_type.dart';
 import 'package:flutter/material.dart';
-import '../repositories/repository_type.dart';
 
 class RepositorySelector extends StatelessWidget {
+  const RepositorySelector({
+    required this.selectedType,
+    required this.onChanged,
+    super.key,
+    this.isLoading = false,
+  });
   final RepositoryType selectedType;
-  final Function(RepositoryType) onChanged;
+  final void Function(RepositoryType) onChanged;
   final bool isLoading;
-
-  const RepositorySelector({super.key, required this.selectedType, required this.onChanged, this.isLoading = false});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +20,11 @@ class RepositorySelector extends StatelessWidget {
         const Text('Repository:', style: TextStyle(fontSize: 14)),
         const SizedBox(width: 8),
         if (isLoading)
-          const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+          const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
         else
           DropdownButton<RepositoryType>(
             value: selectedType,
@@ -34,7 +42,9 @@ class RepositorySelector extends StatelessWidget {
                     value: type,
                     child: Text(
                       type.displayName,
-                      style: TextStyle(color: Theme.of(context).appBarTheme.foregroundColor),
+                      style: TextStyle(
+                        color: Theme.of(context).appBarTheme.foregroundColor,
+                      ),
                     ),
                   ),
                 )

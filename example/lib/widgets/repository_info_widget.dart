@@ -13,10 +13,12 @@ class RepositoryInfoWidget extends StatelessWidget {
         const Text('• Real-time streaming updates'),
         const Text('• CRUD operations (Create, Read, Update, Delete)'),
         const Text('• Custom Query system with QueryBuilder'),
-        const Text('• Search queries (QueryByName, QueryByPriceGreaterThan/LessThan)'),
+        const Text(
+            '• Search queries (QueryByName, QueryByPriceGreaterThan/LessThan)',),
         const Text('• Date-based queries (QueryByCreatedAfter/Before)'),
         const Text('• Error handling'),
-        const Text('• Multiple backend support (Firebase, PocketBase, InMemory)'),
+        const Text(
+            '• Multiple backend support (Firebase, PocketBase, InMemory)',),
         const SizedBox(height: 16),
         Text(
           'Collection: products | Query System: ProductModelQueryBuilder',
