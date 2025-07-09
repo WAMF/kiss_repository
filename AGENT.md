@@ -6,16 +6,10 @@ A simple, generic repository interface for Dart applications following the KISS 
 
 ### 1. Installation
 
-Add to your `pubspec.yaml`:
+Add this package using the Dart pub command:
 
-```yaml
-dependencies:
-  kiss_repository: ^0.11.0
-```
-
-Run:
 ```bash
-dart pub get
+dart pub add kiss_repository
 ```
 
 ### 2. Basic Setup
