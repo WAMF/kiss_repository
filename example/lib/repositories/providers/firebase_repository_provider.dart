@@ -1,11 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
+import 'package:example/models/product_model.dart';
+import 'package:example/repositories/query_builders/firebase_product_query_builder.dart';
+import 'package:example/repositories/repository_provider.dart';
+import 'package:example/utils/logger.dart' as logger;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:kiss_firebase_repository/kiss_firebase_repository.dart';
-
-import '../../models/product_model.dart';
-import '../../utils/logger.dart' as logger;
-import '../query_builders/firebase_product_query_builder.dart';
-import '../repository_provider.dart';
 
 class FirebaseRepositoryProvider implements RepositoryProvider<ProductModel> {
   Repository<ProductModel>? _repository;
@@ -27,11 +26,14 @@ class FirebaseRepositoryProvider implements RepositoryProvider<ProductModel> {
         );
 
         try {
-          firestore.FirebaseFirestore.instance.useFirestoreEmulator('0.0.0.0', 8080);
+          firestore.FirebaseFirestore.instance
+              .useFirestoreEmulator('0.0.0.0', 8080);
           logger.log('🔥 Using Firestore emulator at 0.0.0.0:8080');
         } catch (e) {
           logger.log('⚠️ Could not connect to Firestore emulator: $e');
-          logger.log('💡 Make sure to run: firebase emulators:start --only firestore');
+          logger.log(
+            '💡 Make sure to run: firebase emulators:start --only firestore',
+          );
         }
 
         _firebaseInitialized = true;
@@ -53,9 +55,9 @@ class FirebaseRepositoryProvider implements RepositoryProvider<ProductModel> {
       },
       fromFirestore: (ref, data) => ProductModel(
         id: ref.id,
-        name: data['name'] ?? '',
-        price: (data['price'] ?? 0.0).toDouble(),
-        description: data['description'] ?? '',
+        name: (data['name'] as String?) ?? '',
+        price: (data['price'] as num?)?.toDouble() ?? 0.0,
+        description: (data['description'] as String?) ?? '',
         created: data['created'] as DateTime,
       ),
       queryBuilder: FirestoreProductQueryBuilder('products'),

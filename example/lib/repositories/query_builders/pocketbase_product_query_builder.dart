@@ -1,5 +1,5 @@
+import 'package:example/queries/product_queries.dart';
 import 'package:kiss_repository/kiss_repository.dart';
-import '../../queries/product_queries.dart';
 
 class PocketBaseProductQueryBuilder implements QueryBuilder<String> {
   @override
@@ -9,11 +9,11 @@ class PocketBaseProductQueryBuilder implements QueryBuilder<String> {
     }
 
     if (query is QueryByPriceGreaterThan) {
-      return "price > ${query.threshold}";
+      return 'price > ${query.threshold}';
     }
 
     if (query is QueryByPriceLessThan) {
-      return "price < ${query.threshold}";
+      return 'price < ${query.threshold}';
     }
 
     if (query is QueryByCreatedAfter) {
@@ -27,6 +27,6 @@ class PocketBaseProductQueryBuilder implements QueryBuilder<String> {
     }
 
     // Default: return all products
-    return "";
+    return '';
   }
 }

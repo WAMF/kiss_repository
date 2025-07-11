@@ -17,19 +17,18 @@
 //
 // To run the app:
 //   cd example && flutter run -d web
+import 'package:example/dependencies.dart';
+import 'package:example/models/product_model.dart';
+import 'package:example/repositories/repository_provider.dart';
+import 'package:example/repositories/repository_type.dart';
+import 'package:example/utils/logger.dart' as logger;
+import 'package:example/widgets/all_products_tab.dart';
+import 'package:example/widgets/repository_info_widget.dart';
+import 'package:example/widgets/repository_selector.dart';
+import 'package:example/widgets/search_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:kiss_dependencies/kiss_dependencies.dart';
 import 'package:kiss_repository/kiss_repository.dart';
-
-import 'dependencies.dart';
-import 'models/product_model.dart';
-import 'repositories/repository_provider.dart';
-import 'repositories/repository_type.dart';
-import 'widgets/all_products_tab.dart';
-import 'widgets/search_tab.dart';
-import 'widgets/repository_selector.dart';
-import 'widgets/repository_info_widget.dart';
-import 'utils/logger.dart' as logger;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,7 +45,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'KISS Repository Example',
-      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange), useMaterial3: true),
+      theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
+          useMaterial3: true,),
       home: const ProductManagementPage(),
     );
   }
@@ -59,7 +60,8 @@ class ProductManagementPage extends StatefulWidget {
   State<ProductManagementPage> createState() => _ProductManagementPageState();
 }
 
-class _ProductManagementPageState extends State<ProductManagementPage> with TickerProviderStateMixin {
+class _ProductManagementPageState extends State<ProductManagementPage>
+    with TickerProviderStateMixin {
   Repository<ProductModel>? _productRepository;
   RepositoryType _selectedRepositoryType = RepositoryType.inMemory;
   bool _isRepositorySwitching = false;
@@ -79,7 +81,8 @@ class _ProductManagementPageState extends State<ProductManagementPage> with Tick
 
     try {
       final providerId = _getProviderId(type);
-      final provider = resolve<RepositoryProvider<ProductModel>>(identifier: providerId);
+      final provider =
+          resolve<RepositoryProvider<ProductModel>>(identifier: providerId);
 
       await provider.initialize();
 
@@ -112,7 +115,8 @@ class _ProductManagementPageState extends State<ProductManagementPage> with Tick
 
   void _showSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
@@ -130,7 +134,7 @@ class _ProductManagementPageState extends State<ProductManagementPage> with Tick
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 16.0),
+            padding: const EdgeInsets.only(right: 16),
             child: RepositorySelector(
               selectedType: _selectedRepositoryType,
               isLoading: _isRepositorySwitching,

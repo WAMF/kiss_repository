@@ -1,6 +1,6 @@
 name: kiss_repository
 description: A simple generic repository interface
-version: 0.11.0
+version: 0.12.0
 repository: https://github.com/WAMF/kiss_repository
 
 environment:

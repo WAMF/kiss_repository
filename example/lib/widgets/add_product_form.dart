@@ -1,14 +1,14 @@
+import 'package:example/models/product_model.dart';
+import 'package:example/utils/logger.dart' as logger;
 import 'package:flutter/material.dart';
-import 'package:kiss_repository/kiss_repository.dart';
-import '../models/product_model.dart';
-import '../utils/logger.dart' as logger;
 import 'package:flutter/services.dart';
+import 'package:kiss_repository/kiss_repository.dart';
 
 class AddProductForm extends StatefulWidget {
+  const AddProductForm(
+      {required this.productRepository, super.key, this.onProductAdded,});
   final Repository<ProductModel> productRepository;
   final VoidCallback? onProductAdded;
-
-  const AddProductForm({super.key, required this.productRepository, this.onProductAdded});
 
   @override
   State<AddProductForm> createState() => _AddProductFormState();
@@ -29,7 +29,8 @@ class _AddProductFormState extends State<AddProductForm> {
   }
 
   Future<void> _addProduct() async {
-    if (_nameController.text.trim().isEmpty || _priceController.text.trim().isEmpty) {
+    if (_nameController.text.trim().isEmpty ||
+        _priceController.text.trim().isEmpty) {
       _showSnackBar('Please fill in both name and price');
       return;
     }
@@ -50,8 +51,8 @@ class _AddProductFormState extends State<AddProductForm> {
       );
 
       // Create product with auto-generated ID
-      await widget.productRepository
-          .addAutoIdentified(product, updateObjectWithId: (product, id) => product.copyWith(id: id));
+      await widget.productRepository.addAutoIdentified(product,
+          updateObjectWithId: (product, id) => product.copyWith(id: id),);
 
       _nameController.clear();
       _priceController.clear();
@@ -67,7 +68,8 @@ class _AddProductFormState extends State<AddProductForm> {
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -82,7 +84,8 @@ class _AddProductFormState extends State<AddProductForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Add New Product', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text('Add New Product',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -90,16 +93,21 @@ class _AddProductFormState extends State<AddProductForm> {
                 flex: 2,
                 child: TextField(
                   controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Product Name', border: OutlineInputBorder()),
+                  decoration: const InputDecoration(
+                      labelText: 'Product Name', border: OutlineInputBorder(),),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: TextField(
                   controller: _priceController,
-                  decoration: const InputDecoration(labelText: 'Price', border: OutlineInputBorder(), prefixText: '\$'),
+                  decoration: const InputDecoration(
+                      labelText: 'Price',
+                      border: OutlineInputBorder(),
+                      prefixText: r'$',),
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                 ),
               ),
             ],
@@ -107,14 +115,19 @@ class _AddProductFormState extends State<AddProductForm> {
           const SizedBox(height: 12),
           TextField(
             controller: _descriptionController,
-            decoration: const InputDecoration(labelText: 'Description (optional)', border: OutlineInputBorder()),
+            decoration: const InputDecoration(
+                labelText: 'Description (optional)',
+                border: OutlineInputBorder(),),
             maxLines: 2,
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: _isLoading ? null : _addProduct,
             icon: _isLoading
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),)
                 : const Icon(Icons.add),
             label: Text(_isLoading ? 'Adding...' : 'Add Product'),
           ),

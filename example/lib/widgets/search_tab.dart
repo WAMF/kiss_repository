@@ -1,13 +1,12 @@
+import 'package:example/models/product_model.dart';
+import 'package:example/queries/product_queries.dart';
+import 'package:example/widgets/product_list_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:kiss_repository/kiss_repository.dart';
-import '../models/product_model.dart';
-import '../queries/product_queries.dart';
-import 'product_list_widget.dart';
 
 class SearchTab extends StatefulWidget {
+  const SearchTab({required this.productRepository, super.key});
   final Repository<ProductModel> productRepository;
-
-  const SearchTab({super.key, required this.productRepository});
 
   @override
   State<SearchTab> createState() => _SearchTabState();
@@ -64,7 +63,8 @@ class _SearchTabState extends State<SearchTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Search Products', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text('Search Products',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
               const SizedBox(height: 16),
               TextField(
                 controller: _searchController,
@@ -85,10 +85,11 @@ class _SearchTabState extends State<SearchTab> {
                       decoration: const InputDecoration(
                         labelText: 'Min Price',
                         hintText: '0.00',
-                        prefixText: '\$',
+                        prefixText: r'$',
                         border: OutlineInputBorder(),
                       ),
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       onChanged: (value) => setState(() {}),
                     ),
                   ),
@@ -99,10 +100,11 @@ class _SearchTabState extends State<SearchTab> {
                       decoration: const InputDecoration(
                         labelText: 'Max Price',
                         hintText: '999.99',
-                        prefixText: '\$',
+                        prefixText: r'$',
                         border: OutlineInputBorder(),
                       ),
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       onChanged: (value) => setState(() {}),
                     ),
                   ),
@@ -146,7 +148,8 @@ class _SearchTabState extends State<SearchTab> {
               children: [
                 Text(
                   _buildSearchResultsTitle(),
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold,),
                 ),
                 const SizedBox(height: 8),
                 Expanded(

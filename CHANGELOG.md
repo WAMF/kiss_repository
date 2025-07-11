@@ -1,3 +1,9 @@
+## 0.12.0
+
+- fixed silent error when not found on deletion
+- cleaned code with linter
+- added doc comments
+
 ## 0.11.0
 
 - Added comprehensive integration tests for InMemoryRepository using factory pattern
