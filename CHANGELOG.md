@@ -1,3 +1,11 @@
+## 0.14.0
+
+- Added JsonFileRepository implementation for persistent storage
+- JsonFileRepository saves data to JSON files and survives application restarts
+- Reuses InMemoryFilterQuery for consistent filtering behavior
+- Added comprehensive test suite for both InMemoryRepository and JsonFileRepository
+- Added tests for batch operations with 50+ items to ensure scalability
+
 ## 0.13.0
 
 - Added support for initial items in InMemoryRepository constructor
