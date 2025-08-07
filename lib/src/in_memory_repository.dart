@@ -36,11 +36,15 @@ String _generateId() {
 /// final repository = InMemoryRepository<MyObject>(
 ///   queryBuilder: MyQueryBuilder(),
 ///   path: 'my_objects',
+///   initialItems: [
+///     IdentifiedObject('id1', MyObject(name: 'Initial Item 1')),
+///     IdentifiedObject('id2', MyObject(name: 'Initial Item 2')),
+///   ],
 /// );
 ///
 /// // Add an item
 /// final item = MyObject(name: 'test');
-/// final added = await repository.add(IdentifiedObject('id1', item));
+/// final added = await repository.add(IdentifiedObject('id3', item));
 ///
 /// // Get an item
 /// final retrieved = await repository.get('id1');
@@ -50,11 +54,27 @@ String _generateId() {
 /// ```
 class InMemoryRepository<T> implements Repository<T> {
   /// Creates a new in-memory repository.
+  ///
+  /// [queryBuilder] - Builder for creating custom filter queries
+  /// [path] - The path/namespace for this repository
+  /// [initialItems] - Optional collection of items to populate the
+  /// repository with on creation
   InMemoryRepository({
     required QueryBuilder<InMemoryFilterQuery<T>> queryBuilder,
     required String path,
+    Iterable<IdentifiedObject<T>>? initialItems,
   })  : _queryBuilder = queryBuilder,
-        _path = path;
+        _path = path {
+    if (initialItems != null) {
+      for (final item in initialItems) {
+        final itemPath = _fullItemPath(item.id);
+        _items[itemPath] = item.object;
+      }
+      if (initialItems.isNotEmpty) {
+        _queryStreamController.add(List<T>.unmodifiable(_items.values));
+      }
+    }
+  }
   final QueryBuilder<InMemoryFilterQuery<T>> _queryBuilder;
   final String _path;
   final Map<String, T> _items = {};
