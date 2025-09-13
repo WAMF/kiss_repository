@@ -5,11 +5,12 @@ import 'dart:io';
 import 'package:kiss_repository/src/in_memory_repository.dart';
 import 'package:kiss_repository/src/repository.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:uuid/uuid.dart';
 
-int _idCounter = 0;
+const _uuid = Uuid();
 
 String _generateId() {
-  return 'Json-${_idCounter++}';
+  return _uuid.v4();
 }
 
 /// A file-based JSON implementation of the [Repository] interface.

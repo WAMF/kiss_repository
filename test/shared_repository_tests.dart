@@ -66,7 +66,7 @@ void runRepositoryTests<T extends Repository<TestObject>>(
 
     group('CRUD Operations', () {
       test('add and get an item', () async {
-        final object = TestObject(name: 'Test Item', value: 42);
+        const object = TestObject(name: 'Test Item', value: 42);
         final identified = IdentifiedObject('test-1', object);
         
         final added = await repository.add(identified);
@@ -77,7 +77,7 @@ void runRepositoryTests<T extends Repository<TestObject>>(
       });
 
       test('add with auto-identification', () async {
-        final object = TestObject(name: 'Auto ID Item', value: 99);
+        const object = TestObject(name: 'Auto ID Item', value: 99);
         
         final added = await repository.addAutoIdentified(
           object,
@@ -101,7 +101,7 @@ void runRepositoryTests<T extends Repository<TestObject>>(
       });
 
       test('throws when adding duplicate item', () async {
-        final object = TestObject(name: 'Duplicate', value: 1);
+        const object = TestObject(name: 'Duplicate', value: 1);
         await repository.add(IdentifiedObject('dup-1', object));
         
         expect(
@@ -119,7 +119,7 @@ void runRepositoryTests<T extends Repository<TestObject>>(
       });
 
       test('update an item', () async {
-        final original = TestObject(name: 'Original', value: 1);
+        const original = TestObject(name: 'Original', value: 1);
         await repository.add(IdentifiedObject('update-1', original));
         
         final updated = await repository.update(
@@ -148,7 +148,7 @@ void runRepositoryTests<T extends Repository<TestObject>>(
       });
 
       test('delete an item', () async {
-        final object = TestObject(name: 'To Delete', value: 1);
+        const object = TestObject(name: 'To Delete', value: 1);
         await repository.add(IdentifiedObject('delete-1', object));
         
         await repository.delete('delete-1');
@@ -173,9 +173,9 @@ void runRepositoryTests<T extends Repository<TestObject>>(
     group('Batch Operations', () {
       test('addAll adds multiple items', () async {
         final items = [
-          IdentifiedObject('batch-1', TestObject(name: 'Item 1', value: 1)),
-          IdentifiedObject('batch-2', TestObject(name: 'Item 2', value: 2)),
-          IdentifiedObject('batch-3', TestObject(name: 'Item 3', value: 3)),
+          IdentifiedObject('batch-1', const TestObject(name: 'Item 1', value: 1)),
+          IdentifiedObject('batch-2', const TestObject(name: 'Item 2', value: 2)),
+          IdentifiedObject('batch-3', const TestObject(name: 'Item 3', value: 3)),
         ];
         
         final added = await repository.addAll(items);
@@ -193,12 +193,12 @@ void runRepositoryTests<T extends Repository<TestObject>>(
 
       test('addAll throws if any item already exists', () async {
         await repository.add(
-          IdentifiedObject('existing', TestObject(name: 'Existing', value: 0)),
+          IdentifiedObject('existing', const TestObject(name: 'Existing', value: 0)),
         );
         
         final items = [
-          IdentifiedObject('new-1', TestObject(name: 'New 1', value: 1)),
-          IdentifiedObject('existing', TestObject(name: 'Duplicate', value: 2)),
+          IdentifiedObject('new-1', const TestObject(name: 'New 1', value: 1)),
+          IdentifiedObject('existing', const TestObject(name: 'Duplicate', value: 2)),
         ];
         
         expect(
@@ -209,14 +209,14 @@ void runRepositoryTests<T extends Repository<TestObject>>(
 
       test('updateAll updates multiple items', () async {
         final items = [
-          IdentifiedObject('up-1', TestObject(name: 'Item 1', value: 1)),
-          IdentifiedObject('up-2', TestObject(name: 'Item 2', value: 2)),
+          IdentifiedObject('up-1', const TestObject(name: 'Item 1', value: 1)),
+          IdentifiedObject('up-2', const TestObject(name: 'Item 2', value: 2)),
         ];
         await repository.addAll(items);
         
         final updates = [
-          IdentifiedObject('up-1', TestObject(name: 'Updated 1', value: 10)),
-          IdentifiedObject('up-2', TestObject(name: 'Updated 2', value: 20)),
+          IdentifiedObject('up-1', const TestObject(name: 'Updated 1', value: 10)),
+          IdentifiedObject('up-2', const TestObject(name: 'Updated 2', value: 20)),
         ];
         
         final updated = await repository.updateAll(updates);
@@ -233,12 +233,12 @@ void runRepositoryTests<T extends Repository<TestObject>>(
 
       test('updateAll throws if any item does not exist', () async {
         await repository.add(
-          IdentifiedObject('exists', TestObject(name: 'Exists', value: 1)),
+          IdentifiedObject('exists', const TestObject(name: 'Exists', value: 1)),
         );
         
         final updates = [
-          IdentifiedObject('exists', TestObject(name: 'Update', value: 2)),
-          IdentifiedObject('missing', TestObject(name: 'Missing', value: 3)),
+          IdentifiedObject('exists', const TestObject(name: 'Update', value: 2)),
+          IdentifiedObject('missing', const TestObject(name: 'Missing', value: 3)),
         ];
         
         expect(
@@ -249,9 +249,9 @@ void runRepositoryTests<T extends Repository<TestObject>>(
 
       test('deleteAll deletes multiple items', () async {
         final items = [
-          IdentifiedObject('del-1', TestObject(name: 'Item 1', value: 1)),
-          IdentifiedObject('del-2', TestObject(name: 'Item 2', value: 2)),
-          IdentifiedObject('del-3', TestObject(name: 'Item 3', value: 3)),
+          IdentifiedObject('del-1', const TestObject(name: 'Item 1', value: 1)),
+          IdentifiedObject('del-2', const TestObject(name: 'Item 2', value: 2)),
+          IdentifiedObject('del-3', const TestObject(name: 'Item 3', value: 3)),
         ];
         await repository.addAll(items);
         
@@ -270,7 +270,7 @@ void runRepositoryTests<T extends Repository<TestObject>>(
 
       test('deleteAll silently ignores non-existent items', () async {
         await repository.add(
-          IdentifiedObject('exists', TestObject(name: 'Exists', value: 1)),
+          IdentifiedObject('exists', const TestObject(name: 'Exists', value: 1)),
         );
         
         await expectLater(
@@ -288,10 +288,10 @@ void runRepositoryTests<T extends Repository<TestObject>>(
     group('Query Operations', () {
       setUp(() async {
         final items = [
-          IdentifiedObject('q-1', TestObject(name: 'Apple', value: 10)),
-          IdentifiedObject('q-2', TestObject(name: 'Banana', value: 20)),
-          IdentifiedObject('q-3', TestObject(name: 'Cherry', value: 30)),
-          IdentifiedObject('q-4', TestObject(name: 'Date', value: 40)),
+          IdentifiedObject('q-1', const TestObject(name: 'Apple', value: 10)),
+          IdentifiedObject('q-2', const TestObject(name: 'Banana', value: 20)),
+          IdentifiedObject('q-3', const TestObject(name: 'Cherry', value: 30)),
+          IdentifiedObject('q-4', const TestObject(name: 'Date', value: 40)),
         ];
         await repository.addAll(items);
       });
@@ -309,7 +309,7 @@ void runRepositoryTests<T extends Repository<TestObject>>(
 
     group('Stream Operations', () {
       test('stream emits current value immediately', () async {
-        final object = TestObject(name: 'Stream Test', value: 1);
+        const object = TestObject(name: 'Stream Test', value: 1);
         await repository.add(IdentifiedObject('stream-1', object));
         
         final stream = repository.stream('stream-1');
@@ -319,7 +319,7 @@ void runRepositoryTests<T extends Repository<TestObject>>(
       });
 
       test('stream emits updates', () async {
-        final original = TestObject(name: 'Original', value: 1);
+        const original = TestObject(name: 'Original', value: 1);
         await repository.add(IdentifiedObject('stream-2', original));
         
         final stream = repository.stream('stream-2');
@@ -343,7 +343,7 @@ void runRepositoryTests<T extends Repository<TestObject>>(
       });
 
       test('stream closes on delete', () async {
-        final object = TestObject(name: 'To Delete', value: 1);
+        const object = TestObject(name: 'To Delete', value: 1);
         await repository.add(IdentifiedObject('stream-3', object));
         
         final stream = repository.stream('stream-3');
@@ -373,8 +373,8 @@ void runRepositoryTests<T extends Repository<TestObject>>(
 
       test('streamQuery emits all items initially', () async {
         final items = [
-          IdentifiedObject('sq-1', TestObject(name: 'Item 1', value: 1)),
-          IdentifiedObject('sq-2', TestObject(name: 'Item 2', value: 2)),
+          IdentifiedObject('sq-1', const TestObject(name: 'Item 1', value: 1)),
+          IdentifiedObject('sq-2', const TestObject(name: 'Item 2', value: 2)),
         ];
         await repository.addAll(items);
         
@@ -392,7 +392,7 @@ void runRepositoryTests<T extends Repository<TestObject>>(
         await Future<void>.delayed(const Duration(milliseconds: 10));
         
         await repository.add(
-          IdentifiedObject('sq-3', TestObject(name: 'New Item', value: 99)),
+          IdentifiedObject('sq-3', const TestObject(name: 'New Item', value: 99)),
         );
         
         await Future<void>.delayed(const Duration(milliseconds: 10));
@@ -409,8 +409,8 @@ void runRepositoryTests<T extends Repository<TestObject>>(
 
     group('Auto-identification', () {
       test('autoIdentify generates unique IDs', () {
-        final object1 = TestObject(name: 'Object 1', value: 1);
-        final object2 = TestObject(name: 'Object 2', value: 2);
+        const object1 = TestObject(name: 'Object 1', value: 1);
+        const object2 = TestObject(name: 'Object 2', value: 2);
         
         final identified1 = repository.autoIdentify(object1);
         final identified2 = repository.autoIdentify(object2);
@@ -421,7 +421,7 @@ void runRepositoryTests<T extends Repository<TestObject>>(
       });
 
       test('autoIdentify with updateObjectWithId', () {
-        final object = TestObject(name: 'Test', value: 1);
+        const object = TestObject(name: 'Test', value: 1);
         
         final identified = repository.autoIdentify(
           object,
