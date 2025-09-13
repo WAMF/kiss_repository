@@ -1,3 +1,8 @@
+## 0.13.0
+
+- Added support for initial items in InMemoryRepository constructor
+- Repository can now be initialized with pre-populated data
+
 ## 0.12.0
 
 - fixed silent error when not found on deletion
