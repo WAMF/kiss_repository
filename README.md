@@ -11,6 +11,7 @@ A lightweight, flexible repository pattern implementation for Dart applications 
 - Minimal and flexible query system
 - Easy to implement and extend
 - **In-memory reference implementation included**
+- **JSON file-based implementation for persistent storage**
 - **Dispose method for proper resource cleanup**
 
 ## Installation
@@ -25,11 +26,17 @@ dart pub add kiss_repository
 
 ### Basic Implementation
 
-This package provides both the interface and an in-memory reference implementation. You can use the in-memory implementation directly for testing or simple use cases, or implement the interface for your specific storage needs.
+This package provides the interface along with two reference implementations:
+- **InMemoryRepository** - Perfect for testing and temporary data storage
+- **JsonFileRepository** - File-based persistence for testing and simple applications
 
-We also provide a Firebase implementation in another package. If you're just looking for a working repository, it's probably best to use that.
+You can use these implementations directly for testing or simple use cases, or implement the interface for your specific storage needs.
 
-### Using the In-Memory Implementation
+We also provide production-ready implementations in other packages (Firebase, PocketBase, DynamoDB, etc.) for real-world applications.
+
+### Using the Reference Implementations
+
+#### In-Memory Repository (Testing & Temporary Storage)
 
 ```dart
 import 'package:kiss_repository/kiss_repository.dart';
@@ -45,18 +52,47 @@ class MyQueryBuilder implements QueryBuilder<InMemoryFilterQuery<MyObject>> {
   }
 }
 
-// Create the repository
+// Create the repository - perfect for unit tests
 final repository = InMemoryRepository<MyObject>(
   queryBuilder: MyQueryBuilder(),
   path: 'my_objects',
+  initialItems: [
+    IdentifiedObject('id1', MyObject(name: 'test1')),
+    IdentifiedObject('id2', MyObject(name: 'test2')),
+  ],
 );
 
 // Use it
 final item = MyObject(name: 'test');
-final added = await repository.add(IdentifiedObject('id1', item));
+final added = await repository.add(IdentifiedObject('id3', item));
 final retrieved = await repository.get('id1');
 
 // Don't forget to dispose when done
+repository.dispose();
+```
+
+#### JSON File Repository (Persistent Testing & Simple Apps)
+
+```dart
+import 'dart:io';
+import 'package:kiss_repository/kiss_repository.dart';
+
+// Create a file-based repository - great for integration tests
+final repository = JsonFileRepository<MyObject>(
+  queryBuilder: MyQueryBuilder(),
+  path: 'my_objects',
+  file: File('test_data.json'),
+  fromJson: (json) => MyObject.fromJson(json),
+  toJson: (obj) => obj.toJson(),
+);
+
+// Data persists across application restarts
+final item = MyObject(name: 'test');
+final added = await repository.add(IdentifiedObject('id1', item));
+
+// Later, even after restart...
+final retrieved = await repository.get('id1'); // Still there!
+
 repository.dispose();
 ```
 
@@ -163,14 +199,77 @@ repository.streamQuery(query: UserQuery(role: 'admin')).listen((admins) {
 
 This package includes comprehensive tests that are available as a separate package: **[kiss_repository_tests](https://pub.dev/packages/kiss_repository_tests)**
 
+### Testing Benefits of Included Implementations
+
+The package includes two implementations that are particularly useful for testing:
+
+#### InMemoryRepository - Unit Testing
+- **Zero dependencies**: No external services or files needed
+- **Fast execution**: Everything runs in memory
+- **Predictable behavior**: No network latency or disk I/O
+- **Easy setup**: Initialize with test data using `initialItems`
+- **Perfect isolation**: Each test gets a fresh instance
+
+```dart
+test('should update user role', () async {
+  final repository = InMemoryRepository<User>(
+    queryBuilder: UserQueryBuilder(),
+    path: 'users',
+    initialItems: [
+      IdentifiedObject('user1', User(name: 'Alice', role: 'viewer')),
+    ],
+  );
+
+  await repository.update('user1', (user) => user.copyWith(role: 'admin'));
+  final updated = await repository.get('user1');
+  expect(updated.role, equals('admin'));
+});
+```
+
+#### JsonFileRepository - Integration Testing
+- **Persistent state**: Test data survives between test runs
+- **Real file I/O**: Tests actual persistence logic
+- **Easy debugging**: Inspect JSON files to see exact data
+- **Migration testing**: Test data format changes and upgrades
+- **Production-like**: Closer to real storage implementations
+
+```dart
+test('should persist data across repository instances', () async {
+  final file = File('test_users.json');
+
+  // First instance - write data
+  var repository = JsonFileRepository<User>(
+    queryBuilder: UserQueryBuilder(),
+    path: 'users',
+    file: file,
+    fromJson: User.fromJson,
+    toJson: (user) => user.toJson(),
+  );
+  await repository.add(IdentifiedObject('user1', User(name: 'Bob')));
+  repository.dispose();
+
+  // Second instance - read persisted data
+  repository = JsonFileRepository<User>(
+    queryBuilder: UserQueryBuilder(),
+    path: 'users',
+    file: file,
+    fromJson: User.fromJson,
+    toJson: (user) => user.toJson(),
+  );
+  final user = await repository.get('user1');
+  expect(user.name, equals('Bob'));
+
+  // Cleanup
+  file.deleteSync();
+});
+```
+
 ### Using the Test Suite
 
-All repository implementations should use the shared test suite to ensure consistency and completeness. Add the test package to your `dev_dependencies`:
+All repository implementations should use the shared test suite to ensure consistency and completeness. Add the test packages to your project:
 
-```yaml
-dev_dependencies:
-  kiss_repository_tests: ^0.9.0
-  test: ^1.21.0
+```bash
+dart pub add --dev kiss_repository_tests test
 ```
 
 ### Running Tests for Your Implementation
@@ -266,6 +365,8 @@ Add your implementation to the comparison table below, documenting capabilities,
 
 | Implementation | Platform | Use Case |
 |----------------|----------|----------|
+| **InMemoryRepository** (included) | Pure Dart | Unit testing, temporary storage |
+| **JsonFileRepository** (included) | Pure Dart | Integration testing, simple persistence |
 | **[Firebase Firestore](https://github.com/WAMF/kiss_firebase_repository)** | Flutter | Real-time apps with offline support |
 | **[PocketBase](https://github.com/WAMF/kiss_pocketbase_repository)** | Pure Dart | Self-hosted apps |
 | **[AWS DynamoDB](https://github.com/WAMF/kiss_dynamodb_repository)** | Pure Dart | Server-side/enterprise apps |

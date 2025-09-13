@@ -1,6 +1,6 @@
 name: kiss_repository
 description: A simple generic repository interface
-version: 0.13.0
+version: 0.15.0
 repository: https://github.com/WAMF/kiss_repository
 
 environment:
@@ -10,4 +10,5 @@ dependencies:
   rxdart: ^0.28.0
 
 dev_dependencies:
+  test: ^1.25.0
   very_good_analysis: ^6.0.0
