@@ -1,3 +1,11 @@
+## 0.16.0
+
+- **BREAKING**: JsonFileRepository now generates UUID v4 format IDs instead of sequential numbers
+- Fixed thread-safety and persistence issues with ID generation in JsonFileRepository
+- Added uuid package dependency for reliable unique ID generation
+- Improved test isolation by using temporary directories instead of fixed file paths
+- Applied performance optimizations to test files with const constructors
+
 ## 0.15.0
 
 - **BREAKING**: Removed `initialItems` parameter from JsonFileRepository constructor
