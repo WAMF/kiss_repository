@@ -1,3 +1,8 @@
+## 0.15.0
+
+- **BREAKING**: Removed `initialItems` parameter from JsonFileRepository constructor
+- Simplified JsonFileRepository by removing unnecessary initialization complexity
+
 ## 0.14.0
 
 - Added JsonFileRepository implementation for persistent storage

@@ -53,31 +53,18 @@ class JsonFileRepository<T> implements Repository<T> {
   /// [file] - The file to persist data to
   /// [fromJson] - Function to deserialize objects from JSON
   /// [toJson] - Function to serialize objects to JSON
-  /// [initialItems] - Optional collection of items to populate the
-  /// repository with on creation
   JsonFileRepository({
     required QueryBuilder<InMemoryFilterQuery<T>> queryBuilder,
     required String path,
     required File file,
     required T Function(Map<String, dynamic>) fromJson,
     required Map<String, dynamic> Function(T) toJson,
-    Iterable<IdentifiedObject<T>>? initialItems,
   })  : _queryBuilder = queryBuilder,
         _path = path,
         _file = file,
         _fromJson = fromJson,
         _toJson = toJson {
     _loadFromFile();
-    if (initialItems != null) {
-      for (final item in initialItems) {
-        final itemPath = _fullItemPath(item.id);
-        _items[itemPath] = item.object;
-      }
-      if (initialItems.isNotEmpty) {
-        _saveToFile();
-        _queryStreamController.add(List<T>.unmodifiable(_items.values));
-      }
-    }
   }
   
   final QueryBuilder<InMemoryFilterQuery<T>> _queryBuilder;
