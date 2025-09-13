@@ -18,10 +18,12 @@ class TestQueryBuilder extends QueryBuilder<InMemoryFilterQuery<TestObject>> {
 }
 
 void main() {
+  late Directory tempDir;
   late File testFile;
 
   setUp(() {
-    testFile = File('test_data.json');
+    tempDir = Directory.systemTemp.createTempSync('kiss_repository_test_');
+    testFile = File('${tempDir.path}/test_data.json');
     if (testFile.existsSync()) {
       testFile.deleteSync();
     }
@@ -30,6 +32,9 @@ void main() {
   tearDown(() {
     if (testFile.existsSync()) {
       testFile.deleteSync();
+    }
+    if (tempDir.existsSync()) {
+      tempDir.deleteSync(recursive: true);
     }
   });
 
