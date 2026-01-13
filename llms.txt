@@ -1,0 +1,28 @@
+# kiss_repository
+
+> Lightweight generic repository pattern for Dart following KISS principles - unified interface for data access operations with easy backend switching
+
+kiss_repository provides a consistent API for CRUD operations, streaming, and batch processing across different storage implementations (in-memory, file-based, Firebase, PocketBase, DynamoDB, Drift).
+
+## Core Interface
+
+- [Repository<T>](lib/src/repository.dart): Abstract base class defining CRUD, streaming, and batch operations
+- [IdentifiedObject<T>](lib/src/repository.dart): Wrapper pairing objects with unique string IDs
+- [Query](lib/src/repository.dart): Base class for custom queries - extend to create domain-specific filters
+- [QueryBuilder<T>](lib/src/repository.dart): Translates generic queries to implementation-specific queries
+- [RepositoryException](lib/src/repository.dart): Typed exceptions with notFound, alreadyExists, unknown codes
+
+## Reference Implementations
+
+- [InMemoryRepository](lib/src/in_memory_repository.dart): In-memory storage for testing and temporary data
+- [JsonFileRepository](lib/src/json_file_repository.dart): JSON file persistence for integration testing
+
+## Documentation
+
+- [README](README.md): Full usage guide with examples and best practices
+- [CHANGELOG](CHANGELOG.md): Version history
+
+## Optional
+
+- [Example App](example/): Flutter app demonstrating repository switching
+- [Claude Skill Template](docs/claude-skill/): AI assistant skill for kiss_repository usage
