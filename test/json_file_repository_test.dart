@@ -119,6 +119,31 @@ void main() {
       repo.dispose();
     });
 
+    test('creates parent directories if they do not exist', () async {
+      final nestedFile = File(
+        '${tempDir.path}/nested/dirs/that/dont/exist/data.json',
+      );
+      expect(nestedFile.parent.existsSync(), isFalse);
+
+      final repo = JsonFileRepository<TestObject>(
+        queryBuilder: TestQueryBuilder(),
+        path: 'test_objects',
+        file: nestedFile,
+        fromJson: TestObject.fromJson,
+        toJson: (obj) => obj.toJson(),
+      );
+
+      await repo.add(
+        IdentifiedObject(
+          'nested-1',
+          const TestObject(name: 'Nested', value: 7),
+        ),
+      );
+
+      expect(nestedFile.existsSync(), isTrue);
+      repo.dispose();
+    });
+
     test('persists and loads 50 items correctly', () async {
       final repo1 = JsonFileRepository<TestObject>(
         queryBuilder: TestQueryBuilder(),

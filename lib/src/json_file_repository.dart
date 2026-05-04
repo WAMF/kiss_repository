@@ -116,6 +116,7 @@ class JsonFileRepository<T> implements Repository<T> {
       _items.forEach((key, value) {
         json[key] = _toJson(value);
       });
+      await _file.parent.create(recursive: true);
       await _file.writeAsString(jsonEncode(json));
     } catch (e) {
       throw RepositoryException(
