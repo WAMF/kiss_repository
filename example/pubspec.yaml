@@ -16,7 +16,7 @@ dependencies:
   kiss_pocketbase_repository: ^0.1.0
   kiss_repository: ^0.11.0
   meta: ^1.11.0
-  pocketbase: any
+  pocketbase: ^0.22.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
