@@ -40,7 +40,7 @@ class PocketBaseRepositoryProvider implements RepositoryProvider<ProductModel> {
           'price': product.price,
           'description': product.description,
         },
-        queryBuilder: PocketBaseProductQueryBuilder(),
+        queryBuilder: PocketBaseProductQueryBuilder(_client),
       );
 
       logger.log('✅ PocketBase repository initialized for $serverUrl');
