@@ -1,4 +1,6 @@
 import 'package:example/models/product_model.dart';
+import 'package:example/utils/product_edit.dart';
+import 'package:example/utils/relative_time.dart';
 import 'package:flutter/material.dart';
 import 'package:kiss_repository/kiss_repository.dart';
 
@@ -78,44 +80,45 @@ class ProductListWidget extends StatelessWidget {
       ),
     );
 
-    if (result != null) {
-      final newName = result['name']!;
-      final priceText = result['price']!;
-      final newDescription = result['description']!;
+    if (result == null) return;
 
-      if (newName.isEmpty || priceText.isEmpty) {
-        // ignore: use_build_context_synchronously
-        _showSnackBar(context, 'Name and price are required');
-        return;
+    final newName = result['name']!;
+    final newDescription = result['description']!;
+
+    final validation = validateProductEdit(
+      name: newName,
+      priceText: result['price']!,
+    );
+    if (validation.error != null) {
+      // ignore: use_build_context_synchronously
+      _showSnackBar(context, validation.error!);
+      return;
+    }
+    final newPrice = validation.price!;
+
+    final changesProduct = productEditChangesProduct(
+      product,
+      name: newName,
+      price: newPrice,
+      description: newDescription,
+    );
+    if (!changesProduct) return;
+
+    try {
+      await productRepository.update(
+        product.id,
+        (current) => current.copyWith(
+          name: newName,
+          price: newPrice,
+          description: newDescription,
+        ),
+      );
+      if (context.mounted) {
+        _showSnackBar(context, 'Product updated successfully!');
       }
-
-      final newPrice = double.tryParse(priceText);
-      if (newPrice == null || newPrice < 0) {
-        // ignore: use_build_context_synchronously
-        _showSnackBar(context, 'Please enter a valid price');
-        return;
-      }
-
-      if (newName != product.name ||
-          newPrice != product.price ||
-          newDescription != product.description) {
-        try {
-          await productRepository.update(
-            product.id,
-            (current) => current.copyWith(
-              name: newName,
-              price: newPrice,
-              description: newDescription,
-            ),
-          );
-          if (context.mounted) {
-            _showSnackBar(context, 'Product updated successfully!');
-          }
-        } catch (e) {
-          if (context.mounted) {
-            _showSnackBar(context, 'Error updating product: $e');
-          }
-        }
+    } catch (e) {
+      if (context.mounted) {
+        _showSnackBar(context, 'Error updating product: $e');
       }
     }
   }
@@ -123,58 +126,6 @@ class ProductListWidget extends StatelessWidget {
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  String _formatCreatedDate(DateTime created) {
-    final now = DateTime.now();
-    final localCreated = created.toLocal();
-    final difference = now.difference(localCreated);
-
-    // If it's within the last minute
-    if (difference.inMinutes < 1) {
-      return 'Just now';
-    }
-    // If it's within the last hour
-    else if (difference.inHours < 1) {
-      final minutes = difference.inMinutes;
-      return '$minutes minute${minutes == 1 ? '' : 's'} ago';
-    }
-    // If it's within the last 24 hours
-    else if (difference.inDays < 1) {
-      final hours = difference.inHours;
-      return '$hours hour${hours == 1 ? '' : 's'} ago';
-    }
-    // If it's within the last week
-    else if (difference.inDays < 7) {
-      final days = difference.inDays;
-      return '$days day${days == 1 ? '' : 's'} ago';
-    }
-    // For older dates, show the full date
-    else {
-      final months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec',
-      ];
-      final month = months[localCreated.month - 1];
-      final day = localCreated.day;
-      final year = localCreated.year;
-      final hour = localCreated.hour;
-      final minute = localCreated.minute.toString().padLeft(2, '0');
-      final amPm = hour >= 12 ? 'PM' : 'AM';
-      final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
-
-      return '$month $day, $year at $displayHour:$minute $amPm';
-    }
   }
 
   @override
@@ -228,7 +179,7 @@ class ProductListWidget extends StatelessWidget {
           itemCount: products.length,
           itemBuilder: (context, index) {
             final product = products[index];
-            final createString = _formatCreatedDate(product.created);
+            final createString = formatCreatedDate(product.created);
             return Card(
               child: ListTile(
                 leading: CircleAvatar(
